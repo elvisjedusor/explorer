@@ -169,13 +169,14 @@ class BitokExplorer {
   async renderHomeBlocks() {
     const container = document.getElementById('home-blocks-list');
     const { blocks: currentHeight } = this.networkData;
+    const maxHeight = currentHeight - 1;
 
     try {
       const blocksList = [];
       for (let i = 0; i < Math.min(10, currentHeight); i++) {
-        const hash = await this.rpc.getBlockHash(currentHeight - i);
+        const hash = await this.rpc.getBlockHash(maxHeight - i);
         const block = await this.rpc.getBlock(hash);
-        blocksList.push({ height: currentHeight - i, ...block });
+        blocksList.push({ height: maxHeight - i, ...block });
       }
 
       container.innerHTML = blocksList.map(block => `
@@ -202,13 +203,14 @@ class BitokExplorer {
       container.innerHTML = await this.renderBlockDetails(this.currentBlock);
     } else {
       const { blocks: currentHeight } = this.networkData;
+      const maxHeight = currentHeight - 1;
       const blocksList = [];
 
       try {
         for (let i = 0; i < Math.min(20, currentHeight); i++) {
-          const hash = await this.rpc.getBlockHash(currentHeight - i);
+          const hash = await this.rpc.getBlockHash(maxHeight - i);
           const block = await this.rpc.getBlock(hash);
-          blocksList.push({ height: currentHeight - i, ...block });
+          blocksList.push({ height: maxHeight - i, ...block });
         }
 
         container.innerHTML = `
@@ -668,9 +670,10 @@ class BitokExplorer {
         return difficulty * Math.pow(2, 32) / 600;
       }
 
+      const maxHeight = currentHeight - 1;
       const blocks = [];
       for (let i = 0; i < 10; i++) {
-        const hash = await this.rpc.getBlockHash(currentHeight - i);
+        const hash = await this.rpc.getBlockHash(maxHeight - i);
         const block = await this.rpc.getBlock(hash);
         blocks.push(block);
       }
