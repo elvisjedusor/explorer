@@ -1,6 +1,6 @@
 export const RPC_CONFIG = {
-  url: 'http://127.0.0.1:8332/',
-  username: 'yourusername',
-  password: 'yourpassword',
+  url: '/rpc/',
+  username: '',
+  password: '',
   pollInterval: 10000
 };
