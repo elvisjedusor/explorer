@@ -119,8 +119,12 @@ class BitokRPC {
     return await this.call('listtransactions', [count, includeGenerated]);
   }
 
-  async listUnspent(minconf = 1, maxconf = 999999) {
-    return await this.call('listunspent', [minconf, maxconf]);
+  async listUnspent(minconf = 1, maxconf = 999999, addresses = null) {
+    const params = [minconf, maxconf];
+    if (addresses) {
+      params.push(addresses);
+    }
+    return await this.call('listunspent', params);
   }
 
   async getReceivedByAddress(address, minconf = 1) {

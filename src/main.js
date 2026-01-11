@@ -676,8 +676,7 @@ class BitokExplorer {
         received0 = await this.rpc.getReceivedByAddress(address, 0);
         received6 = await this.rpc.getReceivedByAddress(address, 6);
 
-        const allUtxos = await this.rpc.listUnspent(0, 999999);
-        addressUtxos = allUtxos.filter(u => u.address === address);
+        addressUtxos = await this.rpc.listUnspent(0, 999999, [address]);
         balance = addressUtxos.reduce((sum, u) => sum + u.amount, 0);
       } catch (e) {
         console.error('Error fetching address data:', e);
