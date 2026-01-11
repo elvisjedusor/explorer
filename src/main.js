@@ -7,10 +7,7 @@ class BitokExplorer {
     this.rpc = new BitokRPC(RPC_CONFIG.url, RPC_CONFIG.username, RPC_CONFIG.password);
     this.pollInterval = null;
     this.isConnected = false;
-    this.currentPage = 'home';
     this.networkData = null;
-    this.currentBlock = null;
-    this.currentTx = null;
 
     this.init();
   }
@@ -20,6 +17,8 @@ class BitokExplorer {
     this.setupEventListeners();
     this.setupLightbox();
     await this.fetchData();
+    this.handleRoute();
+    window.addEventListener('hashchange', () => this.handleRoute());
     this.startPolling();
   }
 
@@ -29,6 +28,7 @@ class BitokExplorer {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const page = link.dataset.page;
+        window.location.hash = '';
         this.navigateTo(page);
       });
     });
@@ -39,10 +39,58 @@ class BitokExplorer {
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
 
     document.getElementById(`page-${page}`).classList.add('active');
-    document.querySelector(`[data-page="${page}"]`).classList.add('active');
+    const navLink = document.querySelector(`[data-page="${page}"]`);
+    if (navLink) navLink.classList.add('active');
 
-    this.currentPage = page;
-    this.renderCurrentPage();
+    this.renderPage(page);
+  }
+
+  handleRoute() {
+    const hash = window.location.hash.slice(1);
+
+    if (!hash) {
+      this.navigateTo('home');
+      return;
+    }
+
+    const parts = hash.split('/').filter(p => p);
+
+    if (parts.length === 0) {
+      this.navigateTo('home');
+      return;
+    }
+
+    const type = parts[0];
+    const id = parts[1];
+
+    switch (type) {
+      case 'block':
+        if (id) {
+          this.navigateTo('blocks');
+          this.viewBlock(id);
+        } else {
+          this.navigateTo('blocks');
+        }
+        break;
+      case 'tx':
+        if (id) {
+          this.navigateTo('transactions');
+          this.viewTransaction(id);
+        } else {
+          this.navigateTo('transactions');
+        }
+        break;
+      case 'address':
+        if (id) {
+          this.navigateTo('addresses');
+          this.searchAddressDirect(id);
+        } else {
+          this.navigateTo('addresses');
+        }
+        break;
+      default:
+        this.navigateTo('home');
+    }
   }
 
   setupEventListeners() {
@@ -104,7 +152,7 @@ class BitokExplorer {
       this.networkData = info;
       this.isConnected = true;
       this.updateConnectionStatus(true);
-      await this.renderCurrentPage();
+      await this.updateDashboard();
     } catch (error) {
       this.isConnected = false;
       this.updateConnectionStatus(false, error.message);
@@ -125,14 +173,14 @@ class BitokExplorer {
     }
   }
 
-  async renderCurrentPage() {
+  async renderPage(page) {
     if (!this.networkData) return;
 
-    switch (this.currentPage) {
+    switch (page) {
       case 'home':
         break;
       case 'dashboard':
-        await this.renderHome();
+        await this.updateDashboard();
         break;
       case 'blocks':
         await this.renderBlocks();
@@ -149,14 +197,21 @@ class BitokExplorer {
     }
   }
 
-  async renderHome() {
-    const { blocks, difficulty, connections, generate, genproclimit } = this.networkData;
+  async updateDashboard() {
+    if (!this.networkData) return;
 
-    document.getElementById('stat-blocks').textContent = blocks.toLocaleString();
+    const { blocks, difficulty } = this.networkData;
+    const maxHeight = blocks - 1;
+
+    document.getElementById('stat-blocks').textContent = maxHeight.toLocaleString();
     document.getElementById('stat-difficulty').textContent = difficulty.toFixed(8);
 
-    const mempoolTxs = await this.rpc.getRawMempool();
-    document.getElementById('stat-mempool').textContent = mempoolTxs.length;
+    try {
+      const mempoolTxs = await this.rpc.getRawMempool();
+      document.getElementById('stat-mempool').textContent = mempoolTxs.length;
+    } catch (e) {
+      document.getElementById('stat-mempool').textContent = '0';
+    }
 
     const hashrate = await this.calculateNetworkHashrate(blocks, difficulty);
     const miningEl = document.getElementById('stat-mining');
@@ -168,19 +223,26 @@ class BitokExplorer {
 
   async renderHomeBlocks() {
     const container = document.getElementById('home-blocks-list');
+    if (!container) return;
+
     const { blocks: currentHeight } = this.networkData;
     const maxHeight = currentHeight - 1;
 
     try {
       const blocksList = [];
-      for (let i = 0; i < Math.min(10, currentHeight); i++) {
-        const hash = await this.rpc.getBlockHash(maxHeight - i);
+      const limit = Math.min(10, currentHeight);
+
+      for (let i = 0; i < limit; i++) {
+        const height = maxHeight - i;
+        if (height < 0) break;
+
+        const hash = await this.rpc.getBlockHash(height);
         const block = await this.rpc.getBlock(hash);
-        blocksList.push({ height: maxHeight - i, ...block });
+        blocksList.push({ height, ...block });
       }
 
       container.innerHTML = blocksList.map(block => `
-        <div class="block-item" onclick="window.explorer.viewBlock('${block.hash}')">
+        <div class="block-item" onclick="window.location.hash='#/block/${block.hash}'">
           <div class="block-info">
             <div class="block-height">Block #${block.height.toLocaleString()}</div>
             <div class="block-meta">${block.tx?.length || 0} transactions • ${this.formatTime(block.time)}</div>
@@ -198,19 +260,28 @@ class BitokExplorer {
 
   async renderBlocks() {
     const container = document.getElementById('blocks-content');
+    const hash = window.location.hash;
 
-    if (this.currentBlock) {
-      container.innerHTML = await this.renderBlockDetails(this.currentBlock);
+    if (hash.includes('/block/')) {
+      const blockId = hash.split('/block/')[1];
+      container.innerHTML = '<div class="message message-loading">Loading block...</div>';
+      container.innerHTML = await this.renderBlockDetails(blockId);
     } else {
       const { blocks: currentHeight } = this.networkData;
       const maxHeight = currentHeight - 1;
       const blocksList = [];
 
       try {
-        for (let i = 0; i < Math.min(20, currentHeight); i++) {
-          const hash = await this.rpc.getBlockHash(maxHeight - i);
+        container.innerHTML = '<div class="message message-loading">Loading blocks...</div>';
+
+        const limit = Math.min(20, currentHeight);
+        for (let i = 0; i < limit; i++) {
+          const height = maxHeight - i;
+          if (height < 0) break;
+
+          const hash = await this.rpc.getBlockHash(height);
           const block = await this.rpc.getBlock(hash);
-          blocksList.push({ height: maxHeight - i, ...block });
+          blocksList.push({ height, ...block });
         }
 
         container.innerHTML = `
@@ -219,7 +290,7 @@ class BitokExplorer {
           </div>
           <div class="blocks-list">
             ${blocksList.map(block => `
-              <div class="block-item" onclick="window.explorer.viewBlock('${block.hash}')">
+              <div class="block-item" onclick="window.location.hash='#/block/${block.hash}'">
                 <div class="block-info">
                   <div class="block-height">Block #${block.height.toLocaleString()}</div>
                   <div class="block-meta">${block.tx?.length || 0} transactions</div>
@@ -238,27 +309,54 @@ class BitokExplorer {
     }
   }
 
-  async renderBlockDetails(blockHash) {
+  async renderBlockDetails(blockId) {
     try {
-      const block = await this.rpc.getBlock(blockHash);
-      const height = await this.rpc.getBlockCount();
+      let block;
+      let height;
+
+      if (blockId.match(/^\d+$/)) {
+        height = parseInt(blockId);
+        const hash = await this.rpc.getBlockHash(height);
+        block = await this.rpc.getBlock(hash);
+      } else {
+        block = await this.rpc.getBlock(blockId);
+        const currentHeight = await this.rpc.getBlockCount();
+        height = currentHeight - 1;
+
+        let testBlock = await this.rpc.getBlock(await this.rpc.getBestBlockHash());
+        let count = 0;
+        while (testBlock.hash !== block.hash && count < 10000) {
+          if (!testBlock.previousblockhash) break;
+          testBlock = await this.rpc.getBlock(testBlock.previousblockhash);
+          height--;
+          count++;
+        }
+      }
+
+      const shareUrl = `${window.location.origin}${window.location.pathname}#/block/${block.hash}`;
 
       return `
-        <button class="back-btn" onclick="window.explorer.currentBlock = null; window.explorer.renderBlocks();">← Back to Blocks</button>
+        <button class="back-btn" onclick="window.location.hash=''; window.explorer.renderBlocks();">← Back to Blocks</button>
 
         <div class="detail-card">
-          <h3 class="detail-title">Block #${height - (block.height || 0)}</h3>
+          <h3 class="detail-title">Block #${height.toLocaleString()}</h3>
+          <div style="margin-top: 8px; font-size: 12px; color: #666;">
+            <a href="${shareUrl}" style="color: #0066cc;">Share this block</a>
+          </div>
 
           <div class="detail-grid">
-            <div class="detail-item">
+            <div class="detail-item full-width">
               <div class="detail-label">Hash</div>
               <div class="detail-value mono">${block.hash}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-item full-width">
               <div class="detail-label">Previous Block</div>
-              <div class="detail-value mono clickable" onclick="window.explorer.viewBlock('${block.previousblockhash}')">${block.previousblockhash || 'Genesis'}</div>
+              ${block.previousblockhash ?
+                `<div class="detail-value mono clickable" onclick="window.location.hash='#/block/${block.previousblockhash}'" style="color: #0066cc; cursor: pointer;">${block.previousblockhash}</div>` :
+                '<div class="detail-value">Genesis Block</div>'
+              }
             </div>
-            <div class="detail-item">
+            <div class="detail-item full-width">
               <div class="detail-label">Merkle Root</div>
               <div class="detail-value mono">${block.merkleroot}</div>
             </div>
@@ -274,12 +372,16 @@ class BitokExplorer {
               <div class="detail-label">Nonce</div>
               <div class="detail-value">${block.nonce}</div>
             </div>
+            <div class="detail-item">
+              <div class="detail-label">Transactions</div>
+              <div class="detail-value">${block.tx?.length || 0}</div>
+            </div>
           </div>
 
-          <h3 class="detail-subtitle">Transactions (${block.tx?.length || 0})</h3>
+          <h3 class="detail-subtitle">Transactions</h3>
           <div class="tx-list">
             ${(block.tx || []).map(txid => `
-              <div class="tx-item clickable" onclick="window.explorer.viewTransaction('${txid}')">
+              <div class="tx-item clickable" onclick="window.location.hash='#/tx/${txid}'">
                 <div class="tx-icon">TX</div>
                 <div class="tx-hash">${this.truncateHash(txid)}</div>
               </div>
@@ -294,9 +396,12 @@ class BitokExplorer {
 
   async renderTransactions() {
     const container = document.getElementById('tx-content');
+    const hash = window.location.hash;
 
-    if (this.currentTx) {
-      container.innerHTML = await this.renderTransactionDetails(this.currentTx);
+    if (hash.includes('/tx/')) {
+      const txid = hash.split('/tx/')[1];
+      container.innerHTML = '<div class="message message-loading">Loading transaction...</div>';
+      container.innerHTML = await this.renderTransactionDetails(txid);
     } else {
       container.innerHTML = `
         <div class="empty-state">
@@ -314,19 +419,39 @@ class BitokExplorer {
     try {
       const tx = await this.rpc.getRawTransaction(txid, true);
 
-      const totalIn = tx.vin?.reduce((sum, input) => {
-        return sum + (input.value || 0);
-      }, 0) || 0;
+      let totalIn = 0;
+      const vins = [];
+
+      for (const input of (tx.vin || [])) {
+        if (input.coinbase) {
+          vins.push({ ...input, value: 0 });
+        } else if (input.txid) {
+          try {
+            const prevTx = await this.rpc.getRawTransaction(input.txid, true);
+            const prevOut = prevTx.vout[input.vout];
+            const value = prevOut.value || 0;
+            totalIn += value;
+            vins.push({ ...input, value, address: prevOut.scriptPubKey?.addresses?.[0] });
+          } catch (e) {
+            vins.push({ ...input, value: 0 });
+          }
+        }
+      }
 
       const totalOut = tx.vout?.reduce((sum, output) => {
         return sum + (output.value || 0);
       }, 0) || 0;
 
+      const shareUrl = `${window.location.origin}${window.location.pathname}#/tx/${txid}`;
+
       return `
-        <button class="back-btn" onclick="window.explorer.currentTx = null; window.explorer.renderTransactions();">← Back</button>
+        <button class="back-btn" onclick="window.location.hash=''; window.explorer.renderTransactions();">← Back</button>
 
         <div class="detail-card">
           <h3 class="detail-title">Transaction Details</h3>
+          <div style="margin-top: 8px; font-size: 12px; color: #666;">
+            <a href="${shareUrl}" style="color: #0066cc;">Share this transaction</a>
+          </div>
 
           <div class="detail-grid">
             <div class="detail-item full-width">
@@ -339,7 +464,10 @@ class BitokExplorer {
             </div>
             <div class="detail-item">
               <div class="detail-label">Block Hash</div>
-              <div class="detail-value mono clickable" onclick="window.explorer.viewBlock('${tx.blockhash}')">${this.truncateHash(tx.blockhash || 'Unconfirmed')}</div>
+              ${tx.blockhash ?
+                `<div class="detail-value mono clickable" onclick="window.location.hash='#/block/${tx.blockhash}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(tx.blockhash)}</div>` :
+                '<div class="detail-value">Unconfirmed</div>'
+              }
             </div>
             <div class="detail-item">
               <div class="detail-label">Time</div>
@@ -353,16 +481,17 @@ class BitokExplorer {
 
           <div class="tx-flow">
             <div class="tx-flow-section">
-              <h4>Inputs (${tx.vin?.length || 0})</h4>
+              <h4>Inputs (${vins.length})</h4>
               <div class="tx-io-list">
-                ${(tx.vin || []).map((input, idx) => `
+                ${vins.map((input, idx) => `
                   <div class="tx-io-item">
                     <div class="tx-io-label">#${idx}</div>
                     <div class="tx-io-content">
                       ${input.coinbase ?
                         '<div class="tx-coinbase">Coinbase (Mining Reward)</div>' :
-                        `<div class="tx-io-hash mono">${this.truncateHash(input.txid || 'N/A')}</div>
-                         <div class="tx-io-value">${(input.value || 0).toFixed(8)} BITOK</div>`
+                        `<div class="tx-io-hash mono clickable" onclick="window.location.hash='#/tx/${input.txid}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(input.txid || 'N/A')}</div>
+                         ${input.address ? `<div class="tx-io-address mono clickable" onclick="window.location.hash='#/address/${input.address}'" style="color: #0066cc; cursor: pointer;">${input.address}</div>` : ''}
+                         <div class="tx-io-value">${input.value.toFixed(8)} BITOK</div>`
                       }
                     </div>
                   </div>
@@ -380,7 +509,10 @@ class BitokExplorer {
                   <div class="tx-io-item">
                     <div class="tx-io-label">#${idx}</div>
                     <div class="tx-io-content">
-                      <div class="tx-io-address mono">${output.scriptPubKey?.addresses?.[0] || 'Unknown'}</div>
+                      ${output.scriptPubKey?.addresses?.[0] ?
+                        `<div class="tx-io-address mono clickable" onclick="window.location.hash='#/address/${output.scriptPubKey.addresses[0]}'" style="color: #0066cc; cursor: pointer;">${output.scriptPubKey.addresses[0]}</div>` :
+                        '<div class="tx-io-address mono">Unknown</div>'
+                      }
                       <div class="tx-io-value">${output.value.toFixed(8)} BITOK</div>
                     </div>
                   </div>
@@ -419,7 +551,7 @@ class BitokExplorer {
       container.innerHTML = `
         <div class="mempool-list">
           ${txids.slice(0, 50).map(txid => `
-            <div class="tx-item clickable" onclick="window.explorer.viewTransaction('${txid}')">
+            <div class="tx-item clickable" onclick="window.location.hash='#/tx/${txid}'">
               <div class="tx-icon pending">⏳</div>
               <div class="tx-info">
                 <div class="tx-hash">${this.truncateHash(txid)}</div>
@@ -438,53 +570,22 @@ class BitokExplorer {
 
   async renderAddresses() {
     const container = document.getElementById('addr-content');
+    const hash = window.location.hash;
 
-    container.innerHTML = `
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-        </svg>
-        <div class="empty-state-title">Search for an Address</div>
-        <div class="empty-state-text">Enter an address above to view balance and transactions</div>
-      </div>
-    `;
-  }
-
-  async renderNetwork() {
-    const container = document.getElementById('peers-list');
-    const countEl = document.getElementById('peers-count');
-
-    try {
-      const peers = await this.rpc.getPeerInfo();
-      countEl.textContent = peers.length;
-
-      if (peers.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-title">No Peers Connected</div>
-            <div class="empty-state-text">Node is not connected to any peers</div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = peers.map(peer => `
-        <div class="peer-item">
-          <div class="peer-icon">🌐</div>
-          <div class="peer-info">
-            <div class="peer-addr">${peer.addr}</div>
-            <div class="peer-meta">
-              Version: ${peer.version || 'N/A'} •
-              Height: ${peer.startingheight || 0} •
-              ${peer.inbound ? 'Inbound' : 'Outbound'}
-            </div>
-          </div>
-          <div class="peer-time">${this.formatDuration(peer.conntime)}</div>
+    if (hash.includes('/address/')) {
+      const address = hash.split('/address/')[1];
+      container.innerHTML = '<div class="message message-loading">Loading address...</div>';
+      await this.searchAddressDirect(address);
+    } else {
+      container.innerHTML = `
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <div class="empty-state-title">Search for an Address</div>
+          <div class="empty-state-text">Enter an address above to view balance and transactions</div>
         </div>
-      `).join('');
-    } catch (error) {
-      container.innerHTML = `<div class="empty-state-text">Failed to load peers</div>`;
-      console.error('Failed to fetch peers:', error);
+      `;
     }
   }
 
@@ -503,30 +604,34 @@ class BitokExplorer {
     if (query.length === 64) {
       try {
         await this.rpc.getBlock(query);
-        this.viewBlock(query);
+        window.location.hash = `#/block/${query}`;
         resultContainer.innerHTML = '';
         return;
       } catch (e) {
         try {
           await this.rpc.getRawTransaction(query, true);
-          this.viewTransaction(query);
+          window.location.hash = `#/tx/${query}`;
           resultContainer.innerHTML = '';
           return;
         } catch (e2) {}
       }
     }
 
-    if (!isNaN(query)) {
+    if (query.match(/^\d+$/)) {
       try {
-        const hash = await this.rpc.getBlockHash(parseInt(query));
-        this.viewBlock(hash);
+        const height = parseInt(query);
+        const hash = await this.rpc.getBlockHash(height);
+        window.location.hash = `#/block/${hash}`;
         resultContainer.innerHTML = '';
         return;
-      } catch (e) {}
+      } catch (e) {
+        this.showMessage(resultContainer, `Block #${query} not found`, 'error');
+        return;
+      }
     }
 
     if (query.length >= 26 && query.length <= 35) {
-      this.searchAddressDirect(query);
+      window.location.hash = `#/address/${query}`;
       resultContainer.innerHTML = '';
       return;
     }
@@ -539,7 +644,7 @@ class BitokExplorer {
     const txid = input.value.trim();
 
     if (txid) {
-      this.viewTransaction(txid);
+      window.location.hash = `#/tx/${txid}`;
     }
   }
 
@@ -548,7 +653,7 @@ class BitokExplorer {
     const address = input.value.trim();
 
     if (address) {
-      await this.searchAddressDirect(address);
+      window.location.hash = `#/address/${address}`;
     }
   }
 
@@ -556,26 +661,36 @@ class BitokExplorer {
     const container = document.getElementById('addr-content');
 
     try {
-      container.innerHTML = '<div class="message message-loading">Loading...</div>';
-
       const validation = await this.rpc.validateAddress(address);
       if (!validation.isvalid) {
         container.innerHTML = '<div class="message message-error">Invalid address</div>';
         return;
       }
 
-      const [received0, received6, utxos] = await Promise.all([
-        this.rpc.getReceivedByAddress(address, 0),
-        this.rpc.getReceivedByAddress(address, 6),
-        this.rpc.listUnspent(0, 999999).catch(() => [])
-      ]);
+      let balance = 0;
+      let received0 = 0;
+      let received6 = 0;
+      let addressUtxos = [];
 
-      const addressUtxos = utxos.filter(u => u.address === address);
-      const balance = addressUtxos.reduce((sum, u) => sum + u.amount, 0);
+      try {
+        received0 = await this.rpc.getReceivedByAddress(address, 0);
+        received6 = await this.rpc.getReceivedByAddress(address, 6);
+
+        const allUtxos = await this.rpc.listUnspent(0, 999999);
+        addressUtxos = allUtxos.filter(u => u.address === address);
+        balance = addressUtxos.reduce((sum, u) => sum + u.amount, 0);
+      } catch (e) {
+        console.error('Error fetching address data:', e);
+      }
+
+      const shareUrl = `${window.location.origin}${window.location.pathname}#/address/${address}`;
 
       container.innerHTML = `
         <div class="detail-card">
           <h3 class="detail-title">Address Details</h3>
+          <div style="margin-top: 8px; font-size: 12px; color: #666;">
+            <a href="${shareUrl}" style="color: #0066cc;">Share this address</a>
+          </div>
 
           <div class="detail-grid">
             <div class="detail-item full-width">
@@ -587,11 +702,11 @@ class BitokExplorer {
               <div class="detail-value success">${balance.toFixed(8)} BITOK</div>
             </div>
             <div class="detail-item">
-              <div class="detail-label">Total Received</div>
+              <div class="detail-label">Total Received (0 conf)</div>
               <div class="detail-value">${received0.toFixed(8)} BITOK</div>
             </div>
             <div class="detail-item">
-              <div class="detail-label">Confirmed Received</div>
+              <div class="detail-label">Total Received (6+ conf)</div>
               <div class="detail-value">${received6.toFixed(8)} BITOK</div>
             </div>
             <div class="detail-item">
@@ -606,7 +721,7 @@ class BitokExplorer {
               ${addressUtxos.map(utxo => `
                 <div class="utxo-item">
                   <div class="utxo-info">
-                    <div class="utxo-hash mono clickable" onclick="window.explorer.viewTransaction('${utxo.txid}')">${this.truncateHash(utxo.txid)}</div>
+                    <div class="utxo-hash mono clickable" onclick="window.location.hash='#/tx/${utxo.txid}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(utxo.txid)}</div>
                     <div class="utxo-meta">Output #${utxo.vout} • ${utxo.confirmations} confirmations</div>
                   </div>
                   <div class="utxo-amount">${utxo.amount.toFixed(8)} BITOK</div>
@@ -616,21 +731,17 @@ class BitokExplorer {
           ` : '<div class="empty-state-text">No unspent outputs</div>'}
         </div>
       `;
-
-      this.navigateTo('addresses');
     } catch (error) {
       container.innerHTML = `<div class="message message-error">Error: ${error.message}</div>`;
     }
   }
 
   viewBlock(hash) {
-    this.currentBlock = hash;
-    this.navigateTo('blocks');
+    window.location.hash = `#/block/${hash}`;
   }
 
   viewTransaction(txid) {
-    this.currentTx = txid;
-    this.navigateTo('transactions');
+    window.location.hash = `#/tx/${txid}`;
   }
 
   showMessage(container, message, type) {
@@ -657,13 +768,6 @@ class BitokExplorer {
     return new Date(timestamp * 1000).toLocaleString();
   }
 
-  formatDuration(seconds) {
-    if (seconds < 60) return `${seconds}s`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-    return `${Math.floor(seconds / 86400)}d`;
-  }
-
   async calculateNetworkHashrate(currentHeight, difficulty) {
     try {
       if (currentHeight < 10) {
@@ -672,10 +776,19 @@ class BitokExplorer {
 
       const maxHeight = currentHeight - 1;
       const blocks = [];
-      for (let i = 0; i < 10; i++) {
-        const hash = await this.rpc.getBlockHash(maxHeight - i);
+      const limit = Math.min(10, currentHeight);
+
+      for (let i = 0; i < limit; i++) {
+        const height = maxHeight - i;
+        if (height < 0) break;
+
+        const hash = await this.rpc.getBlockHash(height);
         const block = await this.rpc.getBlock(hash);
         blocks.push(block);
+      }
+
+      if (blocks.length < 2) {
+        return difficulty * Math.pow(2, 32) / 600;
       }
 
       let totalTime = 0;
