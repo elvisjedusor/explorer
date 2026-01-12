@@ -5,48 +5,171 @@ import { RPC_CONFIG } from './config.js';
 class BitokExplorer {
   constructor() {
     this.rpc = new BitokRPC(RPC_CONFIG.url, RPC_CONFIG.username, RPC_CONFIG.password);
-    this.currentPage = 1;
-    this.blocksPerPage = 10;
+    this.currentPage = 'home';
+    this.blocksPage = 1;
+    this.blocksPerPage = 20;
     this.maxBlocks = 0;
+    this.networkInfo = null;
     this.init();
   }
 
   async init() {
-    await this.loadNetworkStats();
-    await this.loadBlocks();
-    this.setupHashRouter();
-    setInterval(() => this.loadNetworkStats(), 30000);
-    setInterval(() => this.loadBlocks(), 60000);
+    await this.loadNetworkInfo();
+    this.setupNavigation();
+    this.setupSearchHandlers();
+    this.handleRoute();
+    window.addEventListener('hashchange', () => this.handleRoute());
+    setInterval(() => this.loadNetworkInfo(), 30000);
   }
 
-  async loadNetworkStats() {
+  async loadNetworkInfo() {
     try {
-      const info = await this.rpc.getInfo();
-      const difficulty = info.difficulty || 0;
-      const blockTime = 600;
-      const hashrate = (difficulty * Math.pow(2, 32)) / blockTime;
-
-      this.maxBlocks = info.blocks;
-
-      const statsCards = document.querySelectorAll('#network-stats .stat-card');
-      if (statsCards[0]) statsCards[0].querySelector('.stat-value').textContent = info.blocks.toLocaleString();
-      if (statsCards[1]) statsCards[1].querySelector('.stat-value').textContent = difficulty.toFixed(8);
-      if (statsCards[2]) statsCards[2].querySelector('.stat-value').textContent = this.formatHashrate(hashrate);
-      if (statsCards[3]) statsCards[3].querySelector('.stat-value').textContent = `${info.connections} peers`;
+      this.networkInfo = await this.rpc.getInfo();
+      this.maxBlocks = this.networkInfo.blocks;
     } catch (error) {
-      console.error('Error loading network stats:', error);
+      console.error('Error loading network info:', error);
     }
   }
 
-  async loadBlocks() {
-    const container = document.getElementById('blocks-list');
+  setupNavigation() {
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = link.dataset.page;
+        window.location.hash = `#/${page}`;
+      });
+    });
+  }
+
+  setupSearchHandlers() {
+    const blockSearch = document.getElementById('block-search');
+    if (blockSearch) {
+      blockSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.searchBlock();
+      });
+    }
+
+    const txSearch = document.getElementById('tx-search');
+    if (txSearch) {
+      txSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.searchTransaction();
+      });
+    }
+
+    const addressSearch = document.getElementById('address-search');
+    if (addressSearch) {
+      addressSearch.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.searchAddress();
+      });
+    }
+  }
+
+  handleRoute() {
+    const hash = window.location.hash.slice(1) || '/home';
+    const parts = hash.split('/').filter(p => p);
+    const page = parts[0] || 'home';
+    const param = parts[1];
+
+    this.navigateTo(page, param);
+  }
+
+  async navigateTo(page, param) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+    const pageEl = document.getElementById(`page-${page}`);
+    if (pageEl) {
+      pageEl.classList.add('active');
+      const navLink = document.querySelector(`[data-page="${page}"]`);
+      if (navLink) navLink.classList.add('active');
+    }
+
+    this.currentPage = page;
+
+    switch (page) {
+      case 'home':
+        break;
+      case 'dashboard':
+        await this.loadDashboard();
+        break;
+      case 'blocks':
+        if (param) {
+          await this.showBlockDetails(param);
+        } else {
+          await this.loadBlocksPage();
+        }
+        break;
+      case 'transactions':
+        if (param) {
+          await this.showTransactionDetails(param);
+        }
+        break;
+      case 'addresses':
+        if (param) {
+          await this.showAddressDetails(param);
+        }
+        break;
+    }
+  }
+
+  async loadDashboard() {
+    await this.updateNetworkStats();
+    await this.loadRecentBlocks();
+  }
+
+  async updateNetworkStats() {
+    if (!this.networkInfo) return;
+
+    const difficulty = this.networkInfo.difficulty || 0;
+    const blockTime = 600;
+    const hashrate = (difficulty * Math.pow(2, 32)) / blockTime;
+
+    const statBlocks = document.getElementById('stat-blocks');
+    const statDifficulty = document.getElementById('stat-difficulty');
+    const statHashrate = document.getElementById('stat-hashrate');
+    const statPeers = document.getElementById('stat-peers');
+
+    if (statBlocks) statBlocks.textContent = this.networkInfo.blocks.toLocaleString();
+    if (statDifficulty) statDifficulty.textContent = difficulty.toFixed(8);
+    if (statHashrate) statHashrate.textContent = this.formatHashrate(hashrate);
+    if (statPeers) statPeers.textContent = this.networkInfo.connections;
+  }
+
+  async loadRecentBlocks() {
+    const container = document.getElementById('recent-blocks-list');
     if (!container) return;
 
-    try {
-      const endBlock = this.maxBlocks - ((this.currentPage - 1) * this.blocksPerPage);
-      const startBlock = Math.max(0, endBlock - this.blocksPerPage + 1);
+    container.innerHTML = '<div class="loading">Loading recent blocks...</div>';
 
-      container.innerHTML = '<div class="loading">Loading blocks...</div>';
+    try {
+      const blocks = [];
+      const startBlock = Math.max(0, this.maxBlocks - 9);
+
+      for (let height = this.maxBlocks; height >= startBlock; height--) {
+        try {
+          const hash = await this.rpc.getBlockHash(height);
+          const block = await this.rpc.getBlock(hash);
+          blocks.push({ height, ...block });
+        } catch (e) {
+          console.error(`Error loading block ${height}:`, e);
+        }
+      }
+
+      container.innerHTML = this.renderBlocksTable(blocks);
+    } catch (error) {
+      container.innerHTML = '<div class="message message-error">Error loading blocks</div>';
+    }
+  }
+
+  async loadBlocksPage() {
+    const container = document.getElementById('all-blocks-list');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Loading blocks...</div>';
+
+    try {
+      const endBlock = this.maxBlocks - ((this.blocksPage - 1) * this.blocksPerPage);
+      const startBlock = Math.max(0, endBlock - this.blocksPerPage + 1);
 
       const blocks = [];
       for (let height = endBlock; height >= startBlock && height >= 0; height--) {
@@ -59,118 +182,129 @@ class BitokExplorer {
         }
       }
 
-      if (blocks.length === 0) {
-        container.innerHTML = '<div class="empty-state-text">No blocks found</div>';
-        return;
-      }
-
-      container.innerHTML = blocks.map(block => `
-        <div class="block-card" onclick="app.showBlockDetails('${block.hash}')">
-          <div class="block-header">
-            <div class="block-height">Block #${block.height.toLocaleString()}</div>
-            <div class="block-time">${this.formatTime(block.time)}</div>
-          </div>
-          <div class="block-hash">${this.truncateHash(block.hash)}</div>
-          <div class="block-info">
-            <span>${block.tx.length} transaction${block.tx.length !== 1 ? 's' : ''}</span>
-            <span>Difficulty: ${block.difficulty.toFixed(2)}</span>
-          </div>
-        </div>
-      `).join('');
-
-      this.updatePagination();
+      container.innerHTML = this.renderBlocksTable(blocks);
+      this.updateBlocksPagination();
     } catch (error) {
-      console.error('Error loading blocks:', error);
       container.innerHTML = '<div class="message message-error">Error loading blocks</div>';
     }
   }
 
-  updatePagination() {
-    const totalPages = Math.ceil(this.maxBlocks / this.blocksPerPage);
-    const currentPageSpan = document.getElementById('current-page');
-    if (currentPageSpan) currentPageSpan.textContent = this.currentPage;
+  renderBlocksTable(blocks) {
+    if (blocks.length === 0) {
+      return '<div class="empty-state-text">No blocks found</div>';
+    }
 
-    const controls = document.getElementById('pagination-controls');
-    if (!controls) return;
-
-    const hasPrev = this.currentPage > 1;
-    const hasNext = this.currentPage < totalPages;
-
-    controls.innerHTML = `
-      <button class="btn btn-secondary" ${!hasPrev ? 'disabled' : ''} onclick="app.previousPage()">← Previous</button>
-      <span class="pagination-info">Page ${this.currentPage} of ${totalPages.toLocaleString()}</span>
-      <button class="btn btn-secondary" ${!hasNext ? 'disabled' : ''} onclick="app.nextPage()">Next →</button>
+    return `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Height</th>
+            <th>Hash</th>
+            <th>Time</th>
+            <th>Transactions</th>
+            <th>Difficulty</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${blocks.map(block => `
+            <tr onclick="window.location.hash = '#/blocks/${block.height}'" class="clickable-row">
+              <td><strong>${block.height.toLocaleString()}</strong></td>
+              <td class="mono">${this.truncateHash(block.hash)}</td>
+              <td>${this.formatTime(block.time)}</td>
+              <td>${block.tx.length}</td>
+              <td>${block.difficulty.toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
     `;
   }
 
-  previousPage() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadBlocks();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
+  updateBlocksPagination() {
+    const container = document.getElementById('blocks-pagination');
+    const pageNum = document.getElementById('blocks-page-num');
+    if (!container) return;
 
-  nextPage() {
     const totalPages = Math.ceil(this.maxBlocks / this.blocksPerPage);
-    if (this.currentPage < totalPages) {
-      this.currentPage++;
-      this.loadBlocks();
+    if (pageNum) pageNum.textContent = this.blocksPage;
+
+    container.innerHTML = `
+      <button class="btn btn-secondary" ${this.blocksPage === 1 ? 'disabled' : ''} onclick="app.prevBlocksPage()">← Previous</button>
+      <span class="pagination-info">Page ${this.blocksPage.toLocaleString()} of ${totalPages.toLocaleString()}</span>
+      <button class="btn btn-secondary" ${this.blocksPage >= totalPages ? 'disabled' : ''} onclick="app.nextBlocksPage()">Next →</button>
+    `;
+  }
+
+  prevBlocksPage() {
+    if (this.blocksPage > 1) {
+      this.blocksPage--;
+      this.loadBlocksPage();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  async universalSearch() {
-    const input = document.getElementById('universal-search');
+  nextBlocksPage() {
+    const totalPages = Math.ceil(this.maxBlocks / this.blocksPerPage);
+    if (this.blocksPage < totalPages) {
+      this.blocksPage++;
+      this.loadBlocksPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  async searchBlock() {
+    const input = document.getElementById('block-search');
+    const container = document.getElementById('block-search-result');
     const query = input.value.trim();
-    const resultsContainer = document.getElementById('search-results');
 
     if (!query) {
-      resultsContainer.innerHTML = '';
+      container.innerHTML = '';
       return;
     }
-
-    resultsContainer.innerHTML = '<div class="loading">Searching...</div>';
 
     if (/^\d+$/.test(query)) {
       const height = parseInt(query);
-      if (height >= 0 && height <= this.maxBlocks) {
-        window.location.hash = `#/block/${height}`;
-        return;
-      } else {
-        resultsContainer.innerHTML = '<div class="message message-error">Block height out of range (max: ' + this.maxBlocks + ')</div>';
-        return;
-      }
+      window.location.hash = `#/blocks/${height}`;
+    } else if (/^[0-9a-fA-F]{64}$/.test(query)) {
+      window.location.hash = `#/blocks/${query}`;
+    } else {
+      container.innerHTML = '<div class="message message-error">Invalid block height or hash</div>';
     }
+  }
+
+  async searchTransaction() {
+    const input = document.getElementById('tx-search');
+    const query = input.value.trim();
+
+    if (!query) return;
 
     if (/^[0-9a-fA-F]{64}$/.test(query)) {
-      try {
-        await this.rpc.getBlock(query);
-        window.location.hash = `#/block/${query}`;
-        return;
-      } catch (e) {
-        try {
-          await this.rpc.getTransaction(query);
-          window.location.hash = `#/tx/${query}`;
-          return;
-        } catch (e2) {
-          resultsContainer.innerHTML = '<div class="message message-error">Not found: Could not find block or transaction with this hash</div>';
-          return;
-        }
-      }
+      window.location.hash = `#/transactions/${query}`;
+    } else {
+      const container = document.getElementById('tx-search-result');
+      container.innerHTML = '<div class="message message-error">Invalid transaction hash</div>';
     }
+  }
+
+  async searchAddress() {
+    const input = document.getElementById('address-search');
+    const query = input.value.trim();
+
+    if (!query) return;
 
     if (query.length >= 26 && query.length <= 35) {
-      window.location.hash = `#/address/${query}`;
-      return;
+      window.location.hash = `#/addresses/${query}`;
+    } else {
+      const container = document.getElementById('address-search-result');
+      container.innerHTML = '<div class="message message-error">Invalid address format</div>';
     }
-
-    resultsContainer.innerHTML = '<div class="message message-error">Invalid input: Please enter a block height, block hash, transaction hash, or address</div>';
   }
 
   async showBlockDetails(hashOrHeight) {
-    const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '<div class="loading">Loading block details...</div>';
+    const container = document.getElementById('block-search-result');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Loading block details...</div>';
 
     try {
       let hash = hashOrHeight;
@@ -179,223 +313,257 @@ class BitokExplorer {
       }
 
       const block = await this.rpc.getBlock(hash);
-      const height = await this.getBlockHeight(hash);
+      let height = hashOrHeight;
+      if (!/^\d+$/.test(hashOrHeight)) {
+        height = await this.getBlockHeight(hash);
+      }
 
-      resultsContainer.innerHTML = `
+      container.innerHTML = `
         <div class="detail-card">
           <div class="detail-header">
-            <h3>Block #${height.toLocaleString()}</h3>
-            <button class="btn btn-secondary" onclick="app.closeSearch()">Close</button>
+            <h2>Block #${parseInt(height).toLocaleString()}</h2>
+            <button class="btn btn-secondary" onclick="window.location.hash = '#/blocks'">Back to Blocks</button>
           </div>
+
           <div class="detail-grid">
-            <div class="detail-item full-width">
-              <div class="detail-label">Hash</div>
+            <div class="detail-row">
+              <div class="detail-label">Block Hash</div>
               <div class="detail-value mono">${block.hash}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Height</div>
-              <div class="detail-value">${height.toLocaleString()}</div>
+              <div class="detail-value">${parseInt(height).toLocaleString()}</div>
             </div>
-            <div class="detail-item">
-              <div class="detail-label">Time</div>
+            <div class="detail-row">
+              <div class="detail-label">Timestamp</div>
               <div class="detail-value">${new Date(block.time * 1000).toLocaleString()}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Difficulty</div>
               <div class="detail-value">${block.difficulty.toFixed(8)}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Nonce</div>
               <div class="detail-value">${block.nonce}</div>
             </div>
             ${block.previousblockhash ? `
-            <div class="detail-item full-width">
+            <div class="detail-row">
               <div class="detail-label">Previous Block</div>
-              <div class="detail-value mono clickable" onclick="app.showBlockDetails('${block.previousblockhash}')">${this.truncateHash(block.previousblockhash)}</div>
+              <div class="detail-value mono link" onclick="window.location.hash = '#/blocks/${block.previousblockhash}'">${this.truncateHash(block.previousblockhash)}</div>
             </div>
-            ` : '<div class="detail-item full-width"><div class="detail-label">Previous Block</div><div class="detail-value">None (Genesis Block)</div></div>'}
-            <div class="detail-item full-width">
+            ` : '<div class="detail-row"><div class="detail-label">Previous Block</div><div class="detail-value">Genesis Block</div></div>'}
+            <div class="detail-row">
               <div class="detail-label">Merkle Root</div>
               <div class="detail-value mono">${block.merkleroot}</div>
             </div>
           </div>
 
-          <h4 class="detail-subtitle">Transactions (${block.tx.length})</h4>
-          <div class="tx-list">
+          <h3>Transactions (${block.tx.length})</h3>
+          <div class="transactions-list">
             ${block.tx.map((txid, idx) => `
-              <div class="tx-item">
-                <div class="tx-label">${idx === 0 ? '🪙 Coinbase' : `TX ${idx}`}</div>
-                <div class="tx-hash mono clickable" onclick="app.showTxDetails('${txid}')">${this.truncateHash(txid)}</div>
+              <div class="tx-row" onclick="window.location.hash = '#/transactions/${txid}'">
+                <span class="tx-index">${idx === 0 ? 'Coinbase' : `TX ${idx}`}</span>
+                <span class="tx-hash mono">${this.truncateHash(txid)}</span>
               </div>
             `).join('')}
           </div>
         </div>
       `;
     } catch (error) {
-      resultsContainer.innerHTML = `<div class="message message-error">Error: ${error.message}</div>`;
+      container.innerHTML = `<div class="message message-error">Error loading block: ${error.message}</div>`;
     }
   }
 
-  async showTxDetails(txid) {
-    const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '<div class="loading">Loading transaction details...</div>';
+  async showTransactionDetails(txid) {
+    const container = document.getElementById('tx-search-result');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Loading transaction details...</div>';
 
     try {
       const tx = await this.rpc.getTransaction(txid);
 
-      resultsContainer.innerHTML = `
+      container.innerHTML = `
         <div class="detail-card">
           <div class="detail-header">
-            <h3>Transaction Details</h3>
-            <button class="btn btn-secondary" onclick="app.closeSearch()">Close</button>
+            <h2>Transaction Details</h2>
+            <button class="btn btn-secondary" onclick="window.location.hash = '#/transactions'">Back</button>
           </div>
+
           <div class="detail-grid">
-            <div class="detail-item full-width">
+            <div class="detail-row">
               <div class="detail-label">Transaction ID</div>
               <div class="detail-value mono">${tx.txid}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Amount</div>
               <div class="detail-value ${tx.amount >= 0 ? 'success' : 'error'}">${tx.amount.toFixed(8)} BITOK</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Confirmations</div>
               <div class="detail-value">${tx.confirmations || 0}</div>
             </div>
-            <div class="detail-item">
-              <div class="detail-label">Time</div>
-              <div class="detail-value">${tx.time ? new Date(tx.time * 1000).toLocaleString() : 'Pending'}</div>
+            <div class="detail-row">
+              <div class="detail-label">Timestamp</div>
+              <div class="detail-value">${tx.time ? new Date(tx.time * 1000).toLocaleString() : 'Unconfirmed'}</div>
             </div>
-            <div class="detail-item">
+            <div class="detail-row">
               <div class="detail-label">Fee</div>
               <div class="detail-value">${tx.fee ? tx.fee.toFixed(8) + ' BITOK' : 'N/A'}</div>
             </div>
             ${tx.blockhash ? `
-              <div class="detail-item full-width">
-                <div class="detail-label">Block Hash</div>
-                <div class="detail-value mono clickable" onclick="app.showBlockDetails('${tx.blockhash}')">${this.truncateHash(tx.blockhash)}</div>
-              </div>
+            <div class="detail-row">
+              <div class="detail-label">Block Hash</div>
+              <div class="detail-value mono link" onclick="window.location.hash = '#/blocks/${tx.blockhash}'">${this.truncateHash(tx.blockhash)}</div>
+            </div>
             ` : ''}
           </div>
 
           ${tx.details && tx.details.length > 0 ? `
-            <h4 class="detail-subtitle">Transaction Details</h4>
-            <div class="tx-details-list">
-              ${tx.details.map(detail => `
-                <div class="tx-detail-item">
-                  <div class="tx-detail-label">${detail.category}</div>
-                  <div class="tx-detail-address mono">${detail.address || 'N/A'}</div>
-                  <div class="tx-detail-amount">${detail.amount.toFixed(8)} BITOK</div>
-                </div>
-              `).join('')}
-            </div>
+            <h3>Details</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Address</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${tx.details.map(detail => `
+                  <tr>
+                    <td><span class="badge">${detail.category}</span></td>
+                    <td class="mono">${detail.address || 'N/A'}</td>
+                    <td class="amount">${detail.amount.toFixed(8)} BITOK</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
           ` : ''}
         </div>
       `;
     } catch (error) {
-      resultsContainer.innerHTML = `<div class="message message-error">Transaction not found in wallet. In Bitcoin 0.3.19, you can only query transactions from your own wallet.</div>`;
+      container.innerHTML = `
+        <div class="message message-error">
+          <strong>Transaction not found in wallet</strong>
+          <p>In Bitcoin 0.3.19, you can only query transactions from your own wallet. This is Satoshi's privacy-by-design.</p>
+          <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more</button>
+        </div>
+      `;
     }
   }
 
   async showAddressDetails(address) {
-    const resultsContainer = document.getElementById('search-results');
-    resultsContainer.innerHTML = '<div class="loading">Loading address details...</div>';
+    const container = document.getElementById('address-search-result');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Loading address details...</div>';
 
     try {
       const validation = await this.rpc.validateAddress(address);
       if (!validation.isvalid) {
-        resultsContainer.innerHTML = '<div class="message message-error">Invalid address</div>';
+        container.innerHTML = '<div class="message message-error">Invalid address</div>';
         return;
       }
 
+      const isWalletAddress = validation.ismine || false;
       let balance = null;
       let received0 = 0;
       let received6 = 0;
-      let addressUtxos = [];
-      const isWalletAddress = validation.ismine || false;
+      let utxos = [];
 
       try {
         received0 = await this.rpc.getReceivedByAddress(address, 0);
         received6 = await this.rpc.getReceivedByAddress(address, 6);
 
         if (isWalletAddress) {
-          try {
-            addressUtxos = await this.rpc.listUnspent(0, 999999, [address]);
-            balance = addressUtxos.reduce((sum, u) => sum + u.amount, 0);
-          } catch (e) {
-            console.error('Error fetching UTXOs:', e);
-          }
+          utxos = await this.rpc.listUnspent(0, 999999, [address]);
+          balance = utxos.reduce((sum, u) => sum + u.amount, 0);
         }
       } catch (e) {
         console.error('Error fetching address data:', e);
       }
 
-      resultsContainer.innerHTML = `
+      container.innerHTML = `
         <div class="detail-card">
           <div class="detail-header">
-            <h3>Address Details</h3>
-            <button class="btn btn-secondary" onclick="app.closeSearch()">Close</button>
+            <h2>Address Details</h2>
+            <button class="btn btn-secondary" onclick="window.location.hash = '#/addresses'">Back</button>
           </div>
 
           ${!isWalletAddress ? `
             <div class="info-box warning">
-              <strong>🔒 Satoshi's Privacy-by-Design:</strong> This address is not in the connected wallet.
-              In Bitcoin's original design, you can only query balance details for addresses in your own wallet.
-              This is a <strong>privacy feature</strong>, not a limitation.
-              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more about this design choice</button>
+              <strong>🔒 Privacy-by-Design</strong>
+              <p>This address is not in the connected wallet. You can see the total received, but full balance and UTXO details are only available for your own addresses.</p>
+              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn why</button>
             </div>
           ` : ''}
 
           <div class="detail-grid">
-            <div class="detail-item full-width">
+            <div class="detail-row full">
               <div class="detail-label">Address</div>
               <div class="detail-value mono">${address}</div>
             </div>
             ${balance !== null ? `
-              <div class="detail-item">
-                <div class="detail-label">Current Balance</div>
-                <div class="detail-value success">${balance.toFixed(8)} BITOK</div>
-              </div>
+            <div class="detail-row">
+              <div class="detail-label">Current Balance</div>
+              <div class="detail-value success large">${balance.toFixed(8)} BITOK</div>
+            </div>
             ` : ''}
-            <div class="detail-item">
-              <div class="detail-label">Total Received (unconfirmed)</div>
+            <div class="detail-row">
+              <div class="detail-label">Total Received (0+ conf)</div>
               <div class="detail-value">${received0.toFixed(8)} BITOK</div>
             </div>
-            <div class="detail-item">
-              <div class="detail-label">Total Received (6+ confirmations)</div>
+            <div class="detail-row">
+              <div class="detail-label">Total Received (6+ conf)</div>
               <div class="detail-value">${received6.toFixed(8)} BITOK</div>
             </div>
-            <div class="detail-item">
-              <div class="detail-label">In Connected Wallet</div>
+            <div class="detail-row">
+              <div class="detail-label">In Wallet</div>
               <div class="detail-value">${isWalletAddress ? '✅ Yes' : '❌ No'}</div>
             </div>
           </div>
 
-          ${addressUtxos.length > 0 ? `
-            <h4 class="detail-subtitle">Unspent Outputs (${addressUtxos.length})</h4>
-            <div class="utxo-list">
-              ${addressUtxos.map(utxo => `
-                <div class="utxo-item">
-                  <div class="utxo-info">
-                    <div class="utxo-hash mono clickable" onclick="app.showTxDetails('${utxo.txid}')">${this.truncateHash(utxo.txid)}</div>
-                    <div class="utxo-meta">Output #${utxo.vout} • ${utxo.confirmations} confirmations</div>
-                  </div>
-                  <div class="utxo-amount">${utxo.amount.toFixed(8)} BITOK</div>
-                </div>
-              `).join('')}
-            </div>
-          ` : (isWalletAddress ? '<div class="empty-state-text">No unspent outputs (balance is 0)</div>' : '')}
+          ${utxos.length > 0 ? `
+            <h3>Unspent Outputs (${utxos.length})</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Transaction</th>
+                  <th>Vout</th>
+                  <th>Confirmations</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${utxos.map(utxo => `
+                  <tr class="clickable-row" onclick="window.location.hash = '#/transactions/${utxo.txid}'">
+                    <td class="mono">${this.truncateHash(utxo.txid)}</td>
+                    <td>${utxo.vout}</td>
+                    <td>${utxo.confirmations}</td>
+                    <td class="amount">${utxo.amount.toFixed(8)} BITOK</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : (isWalletAddress ? '<p class="empty-state-text">No unspent outputs</p>' : '')}
         </div>
       `;
     } catch (error) {
-      resultsContainer.innerHTML = `<div class="message message-error">Error: ${error.message}</div>`;
+      container.innerHTML = `<div class="message message-error">Error: ${error.message}</div>`;
     }
   }
 
-  closeSearch() {
-    document.getElementById('search-results').innerHTML = '';
-    document.getElementById('universal-search').value = '';
-    window.location.hash = '#/';
+  async getBlockHeight(hash) {
+    for (let height = this.maxBlocks; height >= 0; height--) {
+      try {
+        const blockHash = await this.rpc.getBlockHash(height);
+        if (blockHash === hash) return height;
+      } catch (e) {
+        continue;
+      }
+    }
+    return 0;
   }
 
   showPrivacyInfo() {
@@ -464,40 +632,6 @@ class BitokExplorer {
     document.getElementById('modal-overlay').style.display = 'none';
   }
 
-  setupHashRouter() {
-    window.addEventListener('hashchange', () => this.handleRoute());
-    this.handleRoute();
-  }
-
-  handleRoute() {
-    const hash = window.location.hash;
-
-    if (hash.startsWith('#/block/')) {
-      const param = hash.replace('#/block/', '');
-      this.showBlockDetails(param);
-    } else if (hash.startsWith('#/tx/')) {
-      const txid = hash.replace('#/tx/', '');
-      this.showTxDetails(txid);
-    } else if (hash.startsWith('#/address/')) {
-      const address = hash.replace('#/address/', '');
-      this.showAddressDetails(address);
-    } else {
-      this.closeSearch();
-    }
-  }
-
-  async getBlockHeight(hash) {
-    for (let height = this.maxBlocks; height >= 0; height--) {
-      try {
-        const blockHash = await this.rpc.getBlockHash(height);
-        if (blockHash === hash) return height;
-      } catch (e) {
-        continue;
-      }
-    }
-    return 0;
-  }
-
   formatHashrate(hashrate) {
     if (hashrate < 1000) return `${hashrate.toFixed(2)} H/s`;
     if (hashrate < 1000000) return `${(hashrate / 1000).toFixed(2)} KH/s`;
@@ -512,24 +646,16 @@ class BitokExplorer {
     if (diff < 60) return `${Math.floor(diff)}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+    return new Date(timestamp * 1000).toLocaleDateString();
   }
 
   truncateHash(hash) {
     if (!hash) return '';
-    return `${hash.substring(0, 8)}...${hash.substring(hash.length - 8)}`;
+    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 10)}`;
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new BitokExplorer();
-
-  const searchInput = document.getElementById('universal-search');
-  if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        window.app.universalSearch();
-      }
-    });
-  }
 });
