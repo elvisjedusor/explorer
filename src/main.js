@@ -782,48 +782,51 @@ class BitokExplorer {
     return new Date(timestamp * 1000).toLocaleString();
   }
 
-  async calculateNetworkHashrate(currentHeight, _unused) {
+  async calculateNetworkHashrate(currentHeight, globalDifficulty) {
     try {
-      // Bitok target block time is 600 seconds (10 minutes)
-      const TARGET_BLOCK_TIME = 600;
-
-      if (currentHeight < 10) {
+      if (currentHeight < 2) {
         return 0;
       }
 
       const maxHeight = currentHeight - 1;
+      const blocksToFetch = Math.min(100, currentHeight);
       const blocks = [];
-      const limit = Math.min(10, currentHeight);
 
-      // Fetch last 10 blocks
-      for (let i = 0; i < limit; i++) {
+      for (let i = 0; i < blocksToFetch; i++) {
         const height = maxHeight - i;
         if (height < 0) break;
 
-        const hash = await this.rpc.getBlockHash(height);
-        const block = await this.rpc.getBlock(hash);
-        blocks.push(block);
+        try {
+          const hash = await this.rpc.getBlockHash(height);
+          const block = await this.rpc.getBlock(hash);
+          if (block && block.time) {
+            blocks.push(block);
+          }
+        } catch (e) {
+          console.error(`Failed to fetch block at height ${height}:`, e);
+          break;
+        }
       }
 
       if (blocks.length < 2) {
         return 0;
       }
 
-      // Calculate average block time and average difficulty from blocks
-      let totalTime = 0;
-      let totalDifficulty = 0;
+      const oldestBlock = blocks[blocks.length - 1];
+      const newestBlock = blocks[0];
+      const timeDiff = newestBlock.time - oldestBlock.time;
+      const heightDiff = blocks.length - 1;
 
-      for (let i = 0; i < blocks.length - 1; i++) {
-        totalTime += blocks[i].time - blocks[i + 1].time;
-        totalDifficulty += blocks[i].difficulty;
+      if (timeDiff <= 0 || heightDiff === 0) {
+        return 0;
       }
 
-      const avgBlockTime = totalTime / (blocks.length - 1);
-      const avgDifficulty = totalDifficulty / (blocks.length - 1);
+      const avgBlockTime = timeDiff / heightDiff;
+      const difficulty = globalDifficulty || 1.0;
 
-      // Hashrate = difficulty * 2^32 / average_block_time
-      const hashrate = (avgDifficulty * Math.pow(2, 32)) / avgBlockTime;
-      return hashrate;
+      const hashrate = (difficulty * Math.pow(2, 32)) / avgBlockTime;
+
+      return hashrate > 0 ? hashrate : 0;
     } catch (error) {
       console.error('Failed to calculate hashrate:', error);
       return 0;
