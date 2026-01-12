@@ -1,829 +1,312 @@
 import './style.css';
 import BitokRPC from './bitokRpc.js';
 import { RPC_CONFIG } from './config.js';
+import { renderHome } from './pages/home.js';
+import { renderBlocksList, renderBlocksTable } from './pages/blocks.js';
+import { renderBlockDetail } from './pages/block.js';
+import { renderTransactionDetail, renderTransactionNotFound } from './pages/transaction.js';
+import { renderAddressDetail, renderAddressInvalid } from './pages/address.js';
 
 class BitokExplorer {
   constructor() {
     this.rpc = new BitokRPC(RPC_CONFIG.url, RPC_CONFIG.username, RPC_CONFIG.password);
-    this.pollInterval = null;
-    this.isConnected = false;
-    this.networkData = null;
-
+    this.blocksPage = 1;
+    this.blocksPerPage = 20;
+    this.maxBlocks = 0;
+    this.networkInfo = null;
     this.init();
   }
 
   async init() {
-    this.setupNavigation();
-    this.setupEventListeners();
-    this.setupLightbox();
-    await this.fetchData();
+    await this.loadNetworkInfo();
     this.handleRoute();
     window.addEventListener('hashchange', () => this.handleRoute());
-    this.startPolling();
+    setInterval(() => this.loadNetworkInfo(), 30000);
   }
 
-  setupNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const page = link.dataset.page;
-        window.location.hash = '';
-        this.navigateTo(page);
-      });
-    });
-  }
-
-  navigateTo(page) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-
-    document.getElementById(`page-${page}`).classList.add('active');
-    const navLink = document.querySelector(`[data-page="${page}"]`);
-    if (navLink) navLink.classList.add('active');
-
-    this.renderPage(page);
-  }
-
-  handleRoute() {
-    const hash = window.location.hash.slice(1);
-
-    if (!hash) {
-      this.navigateTo('home');
-      return;
-    }
-
-    const parts = hash.split('/').filter(p => p);
-
-    if (parts.length === 0) {
-      this.navigateTo('home');
-      return;
-    }
-
-    const type = parts[0];
-    const id = parts[1];
-
-    switch (type) {
-      case 'block':
-        if (id) {
-          this.navigateTo('blocks');
-          this.viewBlock(id);
-        } else {
-          this.navigateTo('blocks');
-        }
-        break;
-      case 'tx':
-        if (id) {
-          this.navigateTo('transactions');
-          this.viewTransaction(id);
-        } else {
-          this.navigateTo('transactions');
-        }
-        break;
-      case 'address':
-        if (id) {
-          this.navigateTo('addresses');
-          this.searchAddressDirect(id);
-        } else {
-          this.navigateTo('addresses');
-        }
-        break;
-      default:
-        this.navigateTo('home');
-    }
-  }
-
-  setupEventListeners() {
-    document.getElementById('global-search-btn')?.addEventListener('click', () => this.globalSearch());
-    document.getElementById('global-search')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.globalSearch();
-    });
-
-    document.getElementById('tx-search-btn')?.addEventListener('click', () => this.searchTransaction());
-    document.getElementById('tx-search')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.searchTransaction();
-    });
-
-    document.getElementById('addr-search-btn')?.addEventListener('click', () => this.searchAddress());
-    document.getElementById('addr-search')?.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.searchAddress();
-    });
-  }
-
-  setupLightbox() {
-    const lightbox = document.createElement('div');
-    lightbox.className = 'lightbox';
-    lightbox.innerHTML = '<button class="lightbox-close">&times;</button><img src="" alt="Screenshot">';
-    document.body.appendChild(lightbox);
-
-    const lightboxImg = lightbox.querySelector('img');
-    const closeBtn = lightbox.querySelector('.lightbox-close');
-
-    const closeLightbox = () => {
-      lightbox.classList.remove('active');
-    };
-
-    lightbox.addEventListener('click', (e) => {
-      if (e.target === lightbox) {
-        closeLightbox();
-      }
-    });
-
-    closeBtn.addEventListener('click', closeLightbox);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-        closeLightbox();
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('.screenshots-grid img')) {
-        const img = e.target;
-        lightboxImg.src = img.src;
-        lightbox.classList.add('active');
-      }
-    });
-  }
-
-  async fetchData() {
+  async loadNetworkInfo() {
     try {
-      const info = await this.rpc.getInfo();
-      this.networkData = info;
-      this.isConnected = true;
-      this.updateConnectionStatus(true);
-      await this.updateDashboard();
+      this.networkInfo = await this.rpc.getInfo();
+      this.maxBlocks = this.networkInfo.blocks;
     } catch (error) {
-      this.isConnected = false;
-      this.updateConnectionStatus(false, error.message);
-      console.error('Failed to fetch data:', error);
+      console.error('Error loading network info:', error);
     }
   }
 
-  updateConnectionStatus(connected, errorMsg = '') {
-    const statusDot = document.querySelector('.status-dot');
-    const statusText = document.querySelector('.status-text');
+  async handleRoute() {
+    const hash = window.location.hash.slice(1) || '/';
+    const parts = hash.split('/').filter(p => p);
+    const route = parts[0] || 'home';
+    const param = parts[1];
 
-    if (connected) {
-      statusDot.classList.add('connected');
-      statusText.textContent = 'Connected';
-    } else {
-      statusDot.classList.remove('connected');
-      statusText.textContent = errorMsg || 'Disconnected';
-    }
-  }
+    this.updateActiveNav(route);
 
-  async renderPage(page) {
-    if (!this.networkData) return;
-
-    switch (page) {
-      case 'home':
-        break;
-      case 'dashboard':
-        await this.updateDashboard();
-        break;
-      case 'blocks':
-        await this.renderBlocks();
-        break;
-      case 'transactions':
-        await this.renderTransactions();
-        break;
-      case 'mempool':
-        await this.renderMempool();
-        break;
-      case 'addresses':
-        await this.renderAddresses();
-        break;
-    }
-  }
-
-  async updateDashboard() {
-    if (!this.networkData) return;
-
-    const { blocks, difficulty } = this.networkData;
-    const maxHeight = blocks - 1;
-
-    document.getElementById('stat-blocks').textContent = maxHeight.toLocaleString();
-    document.getElementById('stat-difficulty').textContent = difficulty.toFixed(8);
-
-    try {
-      const mempoolTxs = await this.rpc.getRawMempool();
-      document.getElementById('stat-mempool').textContent = mempoolTxs.length;
-    } catch (e) {
-      document.getElementById('stat-mempool').textContent = '0';
-    }
-
-    const hashrate = await this.calculateNetworkHashrate(blocks, difficulty);
-    const miningEl = document.getElementById('stat-mining');
-    miningEl.textContent = this.formatHashrate(hashrate);
-    miningEl.className = `stat-value mining`;
-
-    await this.renderHomeBlocks();
-  }
-
-  async renderHomeBlocks() {
-    const container = document.getElementById('home-blocks-list');
+    const container = document.getElementById('page-container');
     if (!container) return;
 
-    const { blocks: currentHeight } = this.networkData;
-    const maxHeight = currentHeight - 1;
+    switch (route) {
+      case 'home':
+      case '':
+        container.innerHTML = renderHome();
+        document.title = 'Bitok Explorer';
+        break;
 
-    try {
-      const blocksList = [];
-      const limit = Math.min(10, currentHeight);
+      case 'blocks':
+        container.innerHTML = renderBlocksList();
+        document.title = 'Blocks - Bitok Explorer';
+        await this.loadBlocksPage();
+        this.setupBlocksSearch();
+        break;
 
-      for (let i = 0; i < limit; i++) {
-        const height = maxHeight - i;
-        if (height < 0) break;
-
-        const hash = await this.rpc.getBlockHash(height);
-        const block = await this.rpc.getBlock(hash);
-        blocksList.push({ height, ...block });
-      }
-
-      container.innerHTML = blocksList.map(block => `
-        <div class="block-item" onclick="window.location.hash='#/block/${block.hash}'">
-          <div class="block-info">
-            <div class="block-height">Block #${block.height.toLocaleString()}</div>
-            <div class="block-meta">${block.tx?.length || 0} transactions • ${this.formatTime(block.time)}</div>
-          </div>
-          <div class="activity-meta">
-            <div class="block-hash">${this.truncateHash(block.hash)}</div>
-          </div>
-        </div>
-      `).join('');
-    } catch (error) {
-      container.innerHTML = '<div class="empty-state-text">Failed to load blocks</div>';
-      console.error('Failed to fetch blocks:', error);
-    }
-  }
-
-  async renderBlocks() {
-    const container = document.getElementById('blocks-content');
-    const hash = window.location.hash;
-
-    if (hash.includes('/block/')) {
-      const blockId = hash.split('/block/')[1];
-      container.innerHTML = '<div class="message message-loading">Loading block...</div>';
-      container.innerHTML = await this.renderBlockDetails(blockId);
-    } else {
-      const { blocks: currentHeight } = this.networkData;
-      const maxHeight = currentHeight - 1;
-      const blocksList = [];
-
-      try {
-        container.innerHTML = '<div class="message message-loading">Loading blocks...</div>';
-
-        const limit = Math.min(20, currentHeight);
-        for (let i = 0; i < limit; i++) {
-          const height = maxHeight - i;
-          if (height < 0) break;
-
-          const hash = await this.rpc.getBlockHash(height);
-          const block = await this.rpc.getBlock(hash);
-          blocksList.push({ height, ...block });
+      case 'block':
+        if (param) {
+          document.title = 'Block - Bitok Explorer';
+          await this.showBlockPage(param);
+        } else {
+          window.location.hash = '#/blocks';
         }
+        break;
 
-        container.innerHTML = `
-          <div class="section-header">
-            <h2 class="section-title">Latest Blocks</h2>
-          </div>
-          <div class="blocks-list">
-            ${blocksList.map(block => `
-              <div class="block-item" onclick="window.location.hash='#/block/${block.hash}'">
-                <div class="block-info">
-                  <div class="block-height">Block #${block.height.toLocaleString()}</div>
-                  <div class="block-meta">${block.tx?.length || 0} transactions</div>
-                </div>
-                <div class="activity-meta">
-                  <div class="block-hash">${this.truncateHash(block.hash)}</div>
-                  <div class="block-time">${this.formatTime(block.time)}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      } catch (error) {
-        container.innerHTML = '<div class="empty-state-text">Failed to load blocks</div>';
-      }
-    }
-  }
-
-  async renderBlockDetails(blockId) {
-    try {
-      let block;
-      let height;
-
-      if (blockId.match(/^\d+$/)) {
-        height = parseInt(blockId);
-        const hash = await this.rpc.getBlockHash(height);
-        block = await this.rpc.getBlock(hash);
-      } else {
-        block = await this.rpc.getBlock(blockId);
-        const currentHeight = await this.rpc.getBlockCount();
-        height = currentHeight - 1;
-
-        let testBlock = await this.rpc.getBlock(await this.rpc.getBestBlockHash());
-        let count = 0;
-        while (testBlock.hash !== block.hash && count < 10000) {
-          if (!testBlock.previousblockhash) break;
-          testBlock = await this.rpc.getBlock(testBlock.previousblockhash);
-          height--;
-          count++;
+      case 'tx':
+        if (param) {
+          document.title = 'Transaction - Bitok Explorer';
+          await this.showTransactionPage(param);
+        } else {
+          container.innerHTML = '<div class="message message-error">No transaction ID provided</div>';
         }
-      }
+        break;
 
-      const shareUrl = `${window.location.origin}${window.location.pathname}#/block/${block.hash}`;
-
-      return `
-        <button class="back-btn" onclick="window.location.hash=''; window.explorer.renderBlocks();">← Back to Blocks</button>
-
-        <div class="detail-card">
-          <h3 class="detail-title">Block #${height.toLocaleString()}</h3>
-          <div style="margin-top: 8px; font-size: 12px; color: #666;">
-            <a href="${shareUrl}" style="color: #0066cc;">Share this block</a>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-item full-width">
-              <div class="detail-label">Hash</div>
-              <div class="detail-value mono">${block.hash}</div>
-            </div>
-            <div class="detail-item full-width">
-              <div class="detail-label">Previous Block</div>
-              ${block.previousblockhash ?
-                `<div class="detail-value mono clickable" onclick="window.location.hash='#/block/${block.previousblockhash}'" style="color: #0066cc; cursor: pointer;">${block.previousblockhash}</div>` :
-                '<div class="detail-value">Genesis Block</div>'
-              }
-            </div>
-            <div class="detail-item full-width">
-              <div class="detail-label">Merkle Root</div>
-              <div class="detail-value mono">${block.merkleroot}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Time</div>
-              <div class="detail-value">${this.formatFullTime(block.time)}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Difficulty</div>
-              <div class="detail-value">${block.difficulty || 'N/A'}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Nonce</div>
-              <div class="detail-value">${block.nonce}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Transactions</div>
-              <div class="detail-value">${block.tx?.length || 0}</div>
-            </div>
-          </div>
-
-          <h3 class="detail-subtitle">Transactions</h3>
-          <div class="tx-list">
-            ${(block.tx || []).map(txid => `
-              <div class="tx-item clickable" onclick="window.location.hash='#/tx/${txid}'">
-                <div class="tx-icon">TX</div>
-                <div class="tx-hash">${this.truncateHash(txid)}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    } catch (error) {
-      return `<div class="message message-error">Failed to load block: ${error.message}</div>`;
-    }
-  }
-
-  async renderTransactions() {
-    const container = document.getElementById('tx-content');
-    const hash = window.location.hash;
-
-    if (hash.includes('/tx/')) {
-      const txid = hash.split('/tx/')[1];
-      container.innerHTML = '<div class="message message-loading">Loading transaction...</div>';
-      container.innerHTML = await this.renderTransactionDetails(txid);
-    } else {
-      container.innerHTML = `
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-          </svg>
-          <div class="empty-state-title">Search for a Transaction</div>
-          <div class="empty-state-text">Enter a transaction ID above to view details</div>
-        </div>
-      `;
-    }
-  }
-
-  async renderTransactionDetails(txid) {
-    try {
-      const tx = await this.rpc.getRawTransaction(txid, true);
-
-      let totalIn = 0;
-      const vins = [];
-
-      for (const input of (tx.vin || [])) {
-        if (input.coinbase) {
-          vins.push({ ...input, value: 0 });
-        } else if (input.txid) {
-          try {
-            const prevTx = await this.rpc.getRawTransaction(input.txid, true);
-            const prevOut = prevTx.vout[input.vout];
-            const value = prevOut.value || 0;
-            totalIn += value;
-            vins.push({ ...input, value, address: prevOut.scriptPubKey?.addresses?.[0] });
-          } catch (e) {
-            vins.push({ ...input, value: 0 });
-          }
+      case 'address':
+        if (param) {
+          document.title = 'Address - Bitok Explorer';
+          await this.showAddressPage(param);
+        } else {
+          container.innerHTML = '<div class="message message-error">No address provided</div>';
         }
-      }
+        break;
 
-      const totalOut = tx.vout?.reduce((sum, output) => {
-        return sum + (output.value || 0);
-      }, 0) || 0;
-
-      const shareUrl = `${window.location.origin}${window.location.pathname}#/tx/${txid}`;
-
-      return `
-        <button class="back-btn" onclick="window.location.hash=''; window.explorer.renderTransactions();">← Back</button>
-
-        <div class="detail-card">
-          <h3 class="detail-title">Transaction Details</h3>
-          <div style="margin-top: 8px; font-size: 12px; color: #666;">
-            <a href="${shareUrl}" style="color: #0066cc;">Share this transaction</a>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-item full-width">
-              <div class="detail-label">Transaction ID</div>
-              <div class="detail-value mono">${tx.txid}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Confirmations</div>
-              <div class="detail-value">${tx.confirmations || 0}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Block Hash</div>
-              ${tx.blockhash ?
-                `<div class="detail-value mono clickable" onclick="window.location.hash='#/block/${tx.blockhash}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(tx.blockhash)}</div>` :
-                '<div class="detail-value">Unconfirmed</div>'
-              }
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Time</div>
-              <div class="detail-value">${tx.time ? this.formatFullTime(tx.time) : 'Pending'}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Size</div>
-              <div class="detail-value">${tx.size || 0} bytes</div>
-            </div>
-          </div>
-
-          <div class="tx-flow">
-            <div class="tx-flow-section">
-              <h4>Inputs (${vins.length})</h4>
-              <div class="tx-io-list">
-                ${vins.map((input, idx) => `
-                  <div class="tx-io-item">
-                    <div class="tx-io-label">#${idx}</div>
-                    <div class="tx-io-content">
-                      ${input.coinbase ?
-                        '<div class="tx-coinbase">Coinbase (Mining Reward)</div>' :
-                        `<div class="tx-io-hash mono clickable" onclick="window.location.hash='#/tx/${input.txid}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(input.txid || 'N/A')}</div>
-                         ${input.address ? `<div class="tx-io-address mono clickable" onclick="window.location.hash='#/address/${input.address}'" style="color: #0066cc; cursor: pointer;">${input.address}</div>` : ''}
-                         <div class="tx-io-value">${input.value.toFixed(8)} BITOK</div>`
-                      }
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-              <div class="tx-total">Total: ${totalIn.toFixed(8)} BITOK</div>
-            </div>
-
-            <div class="tx-flow-arrow">→</div>
-
-            <div class="tx-flow-section">
-              <h4>Outputs (${tx.vout?.length || 0})</h4>
-              <div class="tx-io-list">
-                ${(tx.vout || []).map((output, idx) => `
-                  <div class="tx-io-item">
-                    <div class="tx-io-label">#${idx}</div>
-                    <div class="tx-io-content">
-                      ${output.scriptPubKey?.addresses?.[0] ?
-                        `<div class="tx-io-address mono clickable" onclick="window.location.hash='#/address/${output.scriptPubKey.addresses[0]}'" style="color: #0066cc; cursor: pointer;">${output.scriptPubKey.addresses[0]}</div>` :
-                        '<div class="tx-io-address mono">Unknown</div>'
-                      }
-                      <div class="tx-io-value">${output.value.toFixed(8)} BITOK</div>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-              <div class="tx-total">Total: ${totalOut.toFixed(8)} BITOK</div>
-            </div>
-          </div>
-
-          ${totalIn > 0 ? `<div class="tx-fee">Fee: ${(totalIn - totalOut).toFixed(8)} BITOK</div>` : ''}
-        </div>
-      `;
-    } catch (error) {
-      return `<div class="message message-error">Failed to load transaction: ${error.message}</div>`;
+      default:
+        container.innerHTML = '<div class="message message-error">Page not found</div>';
     }
   }
 
-  async renderMempool() {
-    const container = document.getElementById('mempool-list');
-    const countEl = document.getElementById('mempool-count');
+  updateActiveNav(route) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('active');
+    });
 
-    try {
-      const txids = await this.rpc.getRawMempool();
-      countEl.textContent = txids.length;
-
-      if (txids.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-title">Mempool Empty</div>
-            <div class="empty-state-text">No pending transactions</div>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="mempool-list">
-          ${txids.slice(0, 50).map(txid => `
-            <div class="tx-item clickable" onclick="window.location.hash='#/tx/${txid}'">
-              <div class="tx-icon pending">⏳</div>
-              <div class="tx-info">
-                <div class="tx-hash">${this.truncateHash(txid)}</div>
-                <div class="tx-meta">Unconfirmed</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        ${txids.length > 50 ? `<div class="tx-meta" style="text-align:center;margin-top:16px;">Showing 50 of ${txids.length} transactions</div>` : ''}
-      `;
-    } catch (error) {
-      container.innerHTML = `<div class="empty-state-text">Failed to load mempool</div>`;
-      console.error('Failed to fetch mempool:', error);
+    if (route === 'home' || route === '') {
+      document.querySelector('a[href="#/"]')?.classList.add('active');
+    } else if (route === 'blocks' || route === 'block') {
+      document.querySelector('a[href="#/blocks"]')?.classList.add('active');
     }
   }
 
-  async renderAddresses() {
-    const container = document.getElementById('addr-content');
-    const hash = window.location.hash;
-
-    if (hash.includes('/address/')) {
-      const address = hash.split('/address/')[1];
-      container.innerHTML = '<div class="message message-loading">Loading address...</div>';
-      await this.searchAddressDirect(address);
-    } else {
-      container.innerHTML = `
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          <div class="empty-state-title">Search for an Address</div>
-          <div class="empty-state-text">Enter an address above to view balance and transactions</div>
-        </div>
-      `;
+  setupBlocksSearch() {
+    const input = document.getElementById('block-search');
+    if (input) {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.searchBlock();
+      });
     }
   }
 
-  async globalSearch() {
-    const input = document.getElementById('global-search');
-    const resultContainer = document.getElementById('global-search-result');
-    const query = input.value.trim();
+  async searchBlock() {
+    const input = document.getElementById('block-search');
+    const query = input?.value.trim();
 
-    if (!query) {
-      this.showMessage(resultContainer, 'Please enter a search term', 'error');
-      return;
-    }
+    if (!query) return;
 
-    resultContainer.innerHTML = '<div class="message message-loading">Searching...</div>';
-
-    if (query.length === 64) {
+    if (/^\d+$/.test(query)) {
+      const height = parseInt(query);
       try {
-        await this.rpc.getBlock(query);
-        window.location.hash = `#/block/${query}`;
-        resultContainer.innerHTML = '';
-        return;
-      } catch (e) {
-        try {
-          await this.rpc.getRawTransaction(query, true);
-          window.location.hash = `#/tx/${query}`;
-          resultContainer.innerHTML = '';
-          return;
-        } catch (e2) {}
-      }
-    }
-
-    if (query.match(/^\d+$/)) {
-      try {
-        const height = parseInt(query);
         const hash = await this.rpc.getBlockHash(height);
         window.location.hash = `#/block/${hash}`;
-        resultContainer.innerHTML = '';
-        return;
-      } catch (e) {
-        this.showMessage(resultContainer, `Block #${query} not found`, 'error');
-        return;
+      } catch (error) {
+        alert('Block not found');
       }
-    }
-
-    if (query.length >= 26 && query.length <= 35) {
-      window.location.hash = `#/address/${query}`;
-      resultContainer.innerHTML = '';
-      return;
-    }
-
-    this.showMessage(resultContainer, 'No results found', 'error');
-  }
-
-  async searchTransaction() {
-    const input = document.getElementById('tx-search');
-    const txid = input.value.trim();
-
-    if (txid) {
-      window.location.hash = `#/tx/${txid}`;
+    } else if (/^[0-9a-fA-F]{64}$/.test(query)) {
+      window.location.hash = `#/block/${query}`;
+    } else {
+      alert('Invalid block height or hash');
     }
   }
 
-  async searchAddress() {
-    const input = document.getElementById('addr-search');
-    const address = input.value.trim();
+  async loadBlocksPage() {
+    const container = document.getElementById('blocks-list');
+    if (!container) return;
 
-    if (address) {
-      window.location.hash = `#/address/${address}`;
+    container.innerHTML = '<div class="loading">Loading blocks...</div>';
+
+    try {
+      const endBlock = this.maxBlocks - ((this.blocksPage - 1) * this.blocksPerPage);
+      const startBlock = Math.max(0, endBlock - this.blocksPerPage + 1);
+
+      const blocks = [];
+      for (let height = endBlock; height >= startBlock && height >= 0; height--) {
+        try {
+          const hash = await this.rpc.getBlockHash(height);
+          const block = await this.rpc.getBlock(hash);
+          blocks.push({ height, ...block });
+        } catch (e) {
+          console.error(`Error loading block ${height}:`, e);
+        }
+      }
+
+      container.innerHTML = renderBlocksTable(blocks, this);
+      this.updateBlocksPagination();
+    } catch (error) {
+      container.innerHTML = '<div class="message message-error">Error loading blocks</div>';
     }
   }
 
-  async searchAddressDirect(address) {
-    const container = document.getElementById('addr-content');
+  updateBlocksPagination() {
+    const container = document.getElementById('blocks-pagination');
+    const pageNum = document.getElementById('blocks-page-num');
+    if (!container) return;
+
+    const totalPages = Math.ceil(this.maxBlocks / this.blocksPerPage);
+    if (pageNum) pageNum.textContent = this.blocksPage;
+
+    container.innerHTML = `
+      <button class="btn btn-secondary" ${this.blocksPage === 1 ? 'disabled' : ''} onclick="app.prevBlocksPage()">← Previous</button>
+      <span class="pagination-info">Page ${this.blocksPage.toLocaleString()} of ${totalPages.toLocaleString()}</span>
+      <button class="btn btn-secondary" ${this.blocksPage >= totalPages ? 'disabled' : ''} onclick="app.nextBlocksPage()">Next →</button>
+    `;
+  }
+
+  prevBlocksPage() {
+    if (this.blocksPage > 1) {
+      this.blocksPage--;
+      this.loadBlocksPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  nextBlocksPage() {
+    const totalPages = Math.ceil(this.maxBlocks / this.blocksPerPage);
+    if (this.blocksPage < totalPages) {
+      this.blocksPage++;
+      this.loadBlocksPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  async showBlockPage(hashOrHeight) {
+    const container = document.getElementById('page-container');
+    container.innerHTML = '<div class="loading">Loading block...</div>';
+
+    try {
+      let hash = hashOrHeight;
+      let height = hashOrHeight;
+
+      if (/^\d+$/.test(hashOrHeight)) {
+        hash = await this.rpc.getBlockHash(parseInt(hashOrHeight));
+      } else {
+        height = await this.getBlockHeight(hash);
+      }
+
+      const block = await this.rpc.getBlock(hash);
+      container.innerHTML = renderBlockDetail(block, height, this);
+    } catch (error) {
+      container.innerHTML = '<div class="message message-error">Block not found</div>';
+    }
+  }
+
+  async showTransactionPage(txid) {
+    const container = document.getElementById('page-container');
+    container.innerHTML = '<div class="loading">Loading transaction...</div>';
+
+    try {
+      const tx = await this.rpc.getTransaction(txid);
+      container.innerHTML = renderTransactionDetail(tx, this);
+    } catch (error) {
+      container.innerHTML = renderTransactionNotFound();
+    }
+  }
+
+  async showAddressPage(address) {
+    const container = document.getElementById('page-container');
+    container.innerHTML = '<div class="loading">Loading address...</div>';
 
     try {
       const validation = await this.rpc.validateAddress(address);
       if (!validation.isvalid) {
-        container.innerHTML = '<div class="message message-error">Invalid address</div>';
+        container.innerHTML = renderAddressInvalid();
         return;
       }
 
-      let balance = 0;
+      const isWalletAddress = validation.ismine || false;
+      let balance = null;
       let received0 = 0;
       let received6 = 0;
-      let addressUtxos = [];
+      let utxos = [];
 
       try {
         received0 = await this.rpc.getReceivedByAddress(address, 0);
         received6 = await this.rpc.getReceivedByAddress(address, 6);
 
-        addressUtxos = await this.rpc.listUnspent(0, 999999, [address]);
-        balance = addressUtxos.reduce((sum, u) => sum + u.amount, 0);
+        if (isWalletAddress) {
+          utxos = await this.rpc.listUnspent(0, 999999, [address]);
+          balance = utxos.reduce((sum, u) => sum + u.amount, 0);
+        }
       } catch (e) {
         console.error('Error fetching address data:', e);
       }
 
-      const shareUrl = `${window.location.origin}${window.location.pathname}#/address/${address}`;
-
-      container.innerHTML = `
-        <div class="detail-card">
-          <h3 class="detail-title">Address Details</h3>
-          <div style="margin-top: 8px; font-size: 12px; color: #666;">
-            <a href="${shareUrl}" style="color: #0066cc;">Share this address</a>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-item full-width">
-              <div class="detail-label">Address</div>
-              <div class="detail-value mono">${address}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Balance</div>
-              <div class="detail-value success">${balance.toFixed(8)} BITOK</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Total Received (0 conf)</div>
-              <div class="detail-value">${received0.toFixed(8)} BITOK</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Total Received (6+ conf)</div>
-              <div class="detail-value">${received6.toFixed(8)} BITOK</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Is Mine</div>
-              <div class="detail-value">${validation.ismine ? 'Yes' : 'No'}</div>
-            </div>
-          </div>
-
-          ${addressUtxos.length > 0 ? `
-            <h3 class="detail-subtitle">Unspent Outputs (${addressUtxos.length})</h3>
-            <div class="utxo-list">
-              ${addressUtxos.map(utxo => `
-                <div class="utxo-item">
-                  <div class="utxo-info">
-                    <div class="utxo-hash mono clickable" onclick="window.location.hash='#/tx/${utxo.txid}'" style="color: #0066cc; cursor: pointer;">${this.truncateHash(utxo.txid)}</div>
-                    <div class="utxo-meta">Output #${utxo.vout} • ${utxo.confirmations} confirmations</div>
-                  </div>
-                  <div class="utxo-amount">${utxo.amount.toFixed(8)} BITOK</div>
-                </div>
-              `).join('')}
-            </div>
-          ` : '<div class="empty-state-text">No unspent outputs</div>'}
-        </div>
-      `;
+      const data = { isWalletAddress, balance, received0, received6, utxos };
+      container.innerHTML = renderAddressDetail(address, data, this);
     } catch (error) {
-      container.innerHTML = `<div class="message message-error">Error: ${error.message}</div>`;
+      container.innerHTML = '<div class="message message-error">Error loading address</div>';
     }
   }
 
-  viewBlock(hash) {
-    window.location.hash = `#/block/${hash}`;
-  }
-
-  viewTransaction(txid) {
-    window.location.hash = `#/tx/${txid}`;
-  }
-
-  showMessage(container, message, type) {
-    container.innerHTML = `<div class="message message-${type}">${message}</div>`;
-  }
-
-  truncateHash(hash) {
-    if (!hash || hash.length <= 20) return hash;
-    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 10)}`;
-  }
-
-  formatTime(timestamp) {
-    const date = new Date(timestamp * 1000);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
-  }
-
-  formatFullTime(timestamp) {
-    return new Date(timestamp * 1000).toLocaleString();
-  }
-
-  async calculateNetworkHashrate(currentHeight, difficulty) {
-    try {
-      if (currentHeight < 10) {
-        return difficulty * Math.pow(2, 32) / 600;
+  async getBlockHeight(hash) {
+    for (let height = this.maxBlocks; height >= 0; height--) {
+      try {
+        const blockHash = await this.rpc.getBlockHash(height);
+        if (blockHash === hash) return height;
+      } catch (e) {
+        continue;
       }
-
-      const maxHeight = currentHeight - 1;
-      const blocks = [];
-      const limit = Math.min(10, currentHeight);
-
-      for (let i = 0; i < limit; i++) {
-        const height = maxHeight - i;
-        if (height < 0) break;
-
-        const hash = await this.rpc.getBlockHash(height);
-        const block = await this.rpc.getBlock(hash);
-        blocks.push(block);
-      }
-
-      if (blocks.length < 2) {
-        return difficulty * Math.pow(2, 32) / 600;
-      }
-
-      let totalTime = 0;
-      for (let i = 0; i < blocks.length - 1; i++) {
-        totalTime += blocks[i].time - blocks[i + 1].time;
-      }
-      const avgBlockTime = totalTime / (blocks.length - 1);
-
-      const hashrate = (difficulty * Math.pow(2, 32)) / avgBlockTime;
-      return hashrate;
-    } catch (error) {
-      console.error('Failed to calculate hashrate:', error);
-      return difficulty * Math.pow(2, 32) / 600;
     }
+    return 0;
+  }
+
+  showModal(title, body) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = body;
+    document.getElementById('modal-overlay').style.display = 'flex';
+  }
+
+  closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
   }
 
   formatHashrate(hashrate) {
-    const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s', 'EH/s'];
-    let unitIndex = 0;
-    let value = hashrate;
-
-    while (value >= 1000 && unitIndex < units.length - 1) {
-      value /= 1000;
-      unitIndex++;
-    }
-
-    return `${value.toFixed(2)} ${units[unitIndex]}`;
+    if (hashrate < 1000) return `${hashrate.toFixed(2)} H/s`;
+    if (hashrate < 1000000) return `${(hashrate / 1000).toFixed(2)} KH/s`;
+    if (hashrate < 1000000000) return `${(hashrate / 1000000).toFixed(2)} MH/s`;
+    return `${(hashrate / 1000000000).toFixed(2)} GH/s`;
   }
 
-  startPolling() {
-    if (this.pollInterval) clearInterval(this.pollInterval);
+  formatTime(timestamp) {
+    const now = Date.now() / 1000;
+    const diff = now - timestamp;
 
-    this.pollInterval = setInterval(async () => {
-      await this.fetchData();
-    }, RPC_CONFIG.pollInterval);
+    if (diff < 60) return `${Math.floor(diff)}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+    return new Date(timestamp * 1000).toLocaleDateString();
+  }
+
+  truncateHash(hash) {
+    if (!hash) return '';
+    return `${hash.substring(0, 10)}...${hash.substring(hash.length - 10)}`;
   }
 }
 
-window.explorer = new BitokExplorer();
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new BitokExplorer();
+});
