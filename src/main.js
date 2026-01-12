@@ -782,16 +782,20 @@ class BitokExplorer {
     return new Date(timestamp * 1000).toLocaleString();
   }
 
-  async calculateNetworkHashrate(currentHeight, difficulty) {
+  async calculateNetworkHashrate(currentHeight, _unused) {
     try {
+      // Bitok target block time is 600 seconds (10 minutes)
+      const TARGET_BLOCK_TIME = 600;
+
       if (currentHeight < 10) {
-        return difficulty * Math.pow(2, 32) / 600;
+        return 0;
       }
 
       const maxHeight = currentHeight - 1;
       const blocks = [];
       const limit = Math.min(10, currentHeight);
 
+      // Fetch last 10 blocks
       for (let i = 0; i < limit; i++) {
         const height = maxHeight - i;
         if (height < 0) break;
@@ -802,20 +806,27 @@ class BitokExplorer {
       }
 
       if (blocks.length < 2) {
-        return difficulty * Math.pow(2, 32) / 600;
+        return 0;
       }
 
+      // Calculate average block time and average difficulty from blocks
       let totalTime = 0;
+      let totalDifficulty = 0;
+
       for (let i = 0; i < blocks.length - 1; i++) {
         totalTime += blocks[i].time - blocks[i + 1].time;
+        totalDifficulty += blocks[i].difficulty;
       }
-      const avgBlockTime = totalTime / (blocks.length - 1);
 
-      const hashrate = (difficulty * Math.pow(2, 32)) / avgBlockTime;
+      const avgBlockTime = totalTime / (blocks.length - 1);
+      const avgDifficulty = totalDifficulty / (blocks.length - 1);
+
+      // Hashrate = difficulty * 2^32 / average_block_time
+      const hashrate = (avgDifficulty * Math.pow(2, 32)) / avgBlockTime;
       return hashrate;
     } catch (error) {
       console.error('Failed to calculate hashrate:', error);
-      return difficulty * Math.pow(2, 32) / 600;
+      return 0;
     }
   }
 
