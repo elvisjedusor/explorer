@@ -175,21 +175,6 @@ body {
   font-family: Georgia, serif;
 }
 
-.breadcrumb {
-  font-size: 13px;
-  margin-bottom: 16px;
-  color: #666;
-}
-
-.breadcrumb a {
-  color: #0000ee;
-  text-decoration: underline;
-}
-
-.breadcrumb a:hover {
-  color: #551a8b;
-}
-
 .hero-section {
   text-align: center;
   padding: 40px 20px;

@@ -10,23 +10,202 @@
     <div id="app">
       <header class="header">
         <div class="container">
-          <a href="#/" class="nav-brand">
+          <div class="nav-brand" onclick="app.navigateTo('home')">
             <span class="logo">⛏️ Bitok Explorer</span>
-          </a>
+          </div>
           <nav class="nav-menu">
-            <a href="#/" class="nav-link">Home</a>
-            <a href="#/blocks" class="nav-link">Blocks</a>
+            <a href="#/home" class="nav-link" data-page="home">Home</a>
+            <a href="#/dashboard" class="nav-link" data-page="dashboard">Dashboard</a>
+            <a href="#/blocks" class="nav-link" data-page="blocks">Blocks</a>
+            <a href="#/transactions" class="nav-link" data-page="transactions">Transactions</a>
+            <a href="#/addresses" class="nav-link" data-page="addresses">Addresses</a>
           </nav>
+          <button class="btn btn-info btn-sm" onclick="app.showPrivacyInfo()">About Privacy</button>
         </div>
       </header>
 
       <main class="main-content">
-        <div class="container" id="page-container"></div>
+        <div class="container">
+          <div id="page-home" class="page active">
+            <div class="hero-section">
+              <h1>Bitok Block Explorer</h1>
+              <p class="hero-subtitle">Explore the blockchain built on Bitcoin 0.3.19</p>
+            </div>
+
+            <div class="content-card">
+              <h2>What is Bitok?</h2>
+              <p>Bitok is Bitcoin v0.3.19 - the last release under Satoshi's direct involvement - with one major change: replacing SHA-256 with Yespower for CPU-friendly mining.</p>
+              <p>No features added. No ideology injected. Just Satoshi's original design, running as its own thing.</p>
+            </div>
+
+            <div class="content-card">
+              <h2>Key Features</h2>
+              <ul class="feature-list">
+                <li><strong>CPU Mineable:</strong> Yespower algorithm keeps mining accessible to everyone with a laptop</li>
+                <li><strong>Original Economics:</strong> 21 million coins, 50 BITOK block reward, halving every 210,000 blocks</li>
+                <li><strong>Privacy-First:</strong> Maintains Satoshi's original privacy-by-design philosophy</li>
+                <li><strong>Simple & Minimal:</strong> No smart contracts, no tokens, just peer-to-peer electronic cash</li>
+              </ul>
+            </div>
+
+            <div class="content-card">
+              <h2>Blockchain Specifications</h2>
+              <div class="specs-grid">
+                <div class="spec-item">
+                  <div class="spec-label">Algorithm</div>
+                  <div class="spec-value">Yespower 1.0</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-label">Block Time</div>
+                  <div class="spec-value">10 minutes</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-label">Block Reward</div>
+                  <div class="spec-value">50 BITOK</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-label">Max Supply</div>
+                  <div class="spec-value">21,000,000</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-label">Difficulty Adjust</div>
+                  <div class="spec-value">Every 2016 blocks</div>
+                </div>
+                <div class="spec-item">
+                  <div class="spec-label">P2P Port</div>
+                  <div class="spec-value">18333</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <h2>Links</h2>
+              <div class="links-grid">
+                <a href="https://github.com/elvisjedusor/bitok" target="_blank" class="link-button">
+                  <span class="link-icon">📦</span>
+                  <span>GitHub Repository</span>
+                </a>
+                <a href="https://bitcointalk.org/index.php?topic=5571165.0" target="_blank" class="link-button">
+                  <span class="link-icon">💬</span>
+                  <span>Bitcointalk Thread</span>
+                </a>
+                <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" class="link-button">
+                  <span class="link-icon">📄</span>
+                  <span>Bitcoin Whitepaper</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div id="page-dashboard" class="page">
+            <h1 class="page-title">Network Dashboard</h1>
+
+            <div class="stats-grid" id="network-stats">
+              <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-label">Block Height</div>
+                <div class="stat-value" id="stat-blocks">-</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-label">Difficulty</div>
+                <div class="stat-value" id="stat-difficulty">-</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">⛏️</div>
+                <div class="stat-label">Network Hashrate</div>
+                <div class="stat-value" id="stat-hashrate">-</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-label">Connected Peers</div>
+                <div class="stat-value" id="stat-peers">-</div>
+              </div>
+            </div>
+
+            <div class="content-card">
+              <h2>Recent Blocks</h2>
+              <div id="recent-blocks-list" class="blocks-table"></div>
+            </div>
+          </div>
+
+          <div id="page-blocks" class="page">
+            <h1 class="page-title">Blocks</h1>
+
+            <div class="search-card">
+              <input
+                type="text"
+                class="search-input"
+                id="block-search"
+                placeholder="Search by block height or hash..."
+              >
+              <button class="btn btn-primary" onclick="app.searchBlock()">Search</button>
+            </div>
+
+            <div id="block-search-result"></div>
+
+            <div class="content-card">
+              <div class="card-header">
+                <h2>All Blocks</h2>
+                <span class="page-indicator">Page <span id="blocks-page-num">1</span></span>
+              </div>
+              <div id="all-blocks-list" class="blocks-table"></div>
+              <div id="blocks-pagination" class="pagination"></div>
+            </div>
+          </div>
+
+          <div id="page-transactions" class="page">
+            <h1 class="page-title">Transactions</h1>
+
+            <div class="search-card">
+              <input
+                type="text"
+                class="search-input"
+                id="tx-search"
+                placeholder="Search by transaction hash (txid)..."
+              >
+              <button class="btn btn-primary" onclick="app.searchTransaction()">Search</button>
+            </div>
+
+            <div id="tx-search-result"></div>
+
+            <div class="info-card">
+              <h3>About Transaction Lookup</h3>
+              <p>In Bitcoin 0.3.19, you can only query transactions that are in your connected wallet. This is part of Satoshi's privacy-by-design philosophy.</p>
+              <p>To view any transaction on the blockchain, modern explorers build their own transaction index by scanning every block - a feature not included in the original Bitcoin node.</p>
+              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more about this design choice</button>
+            </div>
+          </div>
+
+          <div id="page-addresses" class="page">
+            <h1 class="page-title">Addresses</h1>
+
+            <div class="search-card">
+              <input
+                type="text"
+                class="search-input"
+                id="address-search"
+                placeholder="Search by Bitok address..."
+              >
+              <button class="btn btn-primary" onclick="app.searchAddress()">Search</button>
+            </div>
+
+            <div id="address-search-result"></div>
+
+            <div class="info-card">
+              <h3>About Address Balances</h3>
+              <p><strong>Privacy by Design:</strong> In Satoshi's original Bitcoin, you can only query full balance details for addresses in your own wallet.</p>
+              <p>For any address, you CAN see the total amount ever received (this is public blockchain data). But to see the current balance and UTXOs, the address must be in the connected wallet.</p>
+              <p>This prevents users from easily surveilling other users' balances and spending habits.</p>
+              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more about this design choice</button>
+            </div>
+          </div>
+        </div>
       </main>
 
       <footer class="footer">
         <div class="container">
-          <p>Bitok Explorer • <a href="https://github.com/elvisjedusor/bitok" target="_blank">GitHub</a> • <a href="https://bitcointalk.org/index.php?topic=5571165.0" target="_blank">Bitcointalk</a></p>
+          <p>Bitok Explorer - Built on Bitcoin 0.3.19 • <a href="https://github.com/elvisjedusor/bitok" target="_blank">GitHub</a></p>
         </div>
       </footer>
     </div>
