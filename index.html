@@ -4,222 +4,473 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/bit.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bitok Explorer</title>
+    <title>Bitok Explorer - Full-Featured Block Explorer</title>
   </head>
   <body>
     <div id="app">
-      <header class="header">
-        <div class="container">
-          <div class="nav-brand" onclick="app.navigateTo('home')">
-            <span class="logo">⛏️ Bitok Explorer</span>
+      <!-- Navigation -->
+      <nav class="navbar">
+        <div class="nav-container">
+          <div class="nav-brand">
+            <img src="/bit.png" alt="Bitok Logo" class="nav-icon">
+            <span class="nav-title">BITOK</span>
+            <span class="nav-badge">Explorer</span>
           </div>
-          <nav class="nav-menu">
-            <a href="#/home" class="nav-link" data-page="home">Home</a>
-            <a href="#/dashboard" class="nav-link" data-page="dashboard">Dashboard</a>
-            <a href="#/blocks" class="nav-link" data-page="blocks">Blocks</a>
-            <a href="#/transactions" class="nav-link" data-page="transactions">Transactions</a>
-            <a href="#/addresses" class="nav-link" data-page="addresses">Addresses</a>
-          </nav>
-          <button class="btn btn-info btn-sm" onclick="app.showPrivacyInfo()">About Privacy</button>
+          <div class="nav-menu">
+            <a href="#" class="nav-link active" data-page="home">Home</a>
+            <a href="#" class="nav-link" data-page="dashboard">Dashboard</a>
+            <a href="#" class="nav-link" data-page="blocks">Blocks</a>
+            <a href="#" class="nav-link" data-page="transactions">Transactions</a>
+            <a href="#" class="nav-link" data-page="mempool">Mempool</a>
+            <a href="#" class="nav-link" data-page="addresses">Addresses</a>
+          </div>
+          <div class="nav-status">
+            <div class="status-dot"></div>
+            <span class="status-text">Connecting...</span>
+          </div>
         </div>
-      </header>
+      </nav>
 
+      <!-- Main Content -->
       <main class="main-content">
-        <div class="container">
-          <div id="page-home" class="page active">
-            <div class="hero-section">
-              <h1>Bitok Block Explorer</h1>
-              <p class="hero-subtitle">Explore the blockchain built on Bitcoin 0.3.19</p>
+        <!-- Home Page -->
+        <div id="page-home" class="page active">
+          <!-- Header with Links -->
+          <div class="home-header">
+            <div class="home-title-section">
+              <h1 class="home-main-title">Bitok - 0.3.19 Mainnet</h1>
             </div>
-
-            <div class="content-card">
-              <h2>What is Bitok?</h2>
-              <p>Bitok is Bitcoin v0.3.19 - the last release under Satoshi's direct involvement - with one major change: replacing SHA-256 with Yespower for CPU-friendly mining.</p>
-              <p>No features added. No ideology injected. Just Satoshi's original design, running as its own thing.</p>
+            <div class="home-links">
+              <a href="https://github.com/elvisjedusor/bitok" target="_blank" class="home-link">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                Github
+              </a>
+              <a href="https://bitcointalk.org/index.php?topic=5571165.0" target="_blank" class="home-link">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+                Bitcointalk
+              </a>
             </div>
+          </div>
 
-            <div class="content-card">
-              <h2>Key Features</h2>
-              <ul class="feature-list">
-                <li><strong>CPU Mineable:</strong> Yespower algorithm keeps mining accessible to everyone with a laptop</li>
-                <li><strong>Original Economics:</strong> 21 million coins, 50 BITOK block reward, halving every 210,000 blocks</li>
-                <li><strong>Privacy-First:</strong> Maintains Satoshi's original privacy-by-design philosophy</li>
-                <li><strong>Simple & Minimal:</strong> No smart contracts, no tokens, just peer-to-peer electronic cash</li>
+          <!-- About Section -->
+          <div class="section-card">
+            <div class="content-section">
+              <p class="content-text">What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase? No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+
+              <p class="content-text">Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement. Everything after that is history. Not destiny.</p>
+
+              <p class="content-text">I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and <b>resist GPU mining</b>.</p>
+
+              <p class="content-text">The main change is replacing SHA-256 with Yespower for proof-of-work. It's memory-hard, so GPUs don't have much advantage. Anyone with a laptop can mine. I think that's how it was supposed to be.</p>
+            </div>
+          </div>
+
+          <!-- Screenshots -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Screenshots</h2>
+            </div>
+            <div class="content-section">
+              <div class="screenshots-grid">
+                <img src="https://i.ibb.co/cSc3X47h/w1.png" alt="Bitok Screenshot 1" style="max-width: 100%; height: auto; border: 1px solid #999;">
+                <img src="https://i.ibb.co/cKPmN8T6/w2.png" alt="Bitok Screenshot 2" style="max-width: 100%; height: auto; border: 1px solid #999;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Specifications -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Specifications</h2>
+            </div>
+            <div class="content-section">
+              <pre style="background: #f9f9f9; border: 1px solid #ccc; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;">Algorithm:          Yespower 1.0 (N=2048, r=32) pers="BitokPoW"
+Block time:         10 minutes
+Block reward:       50 BITOK
+Halving:            every 210,000 blocks
+Max supply:         21,000,000
+Difficulty adjust:  every 2016 blocks
+Coinbase maturity:  100 blocks
+P2P port:           18333
+RPC port:           8332</pre>
+              <p class="content-text">Same economics as Bitcoin. 21 million coins, halving every 4 years, etc.</p>
+            </div>
+          </div>
+
+          <!-- Downloads -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Downloads</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text"><b>Version 0.3.19.1:</b> <a href="https://github.com/elvisjedusor/bitok/releases/tag/0.3.19.1" target="_blank" style="color: #0000ee; text-decoration: underline;">https://github.com/elvisjedusor/bitok/releases/tag/0.3.19.1</a></p>
+
+              <p class="content-text"><b>Windows (64-bit):</b></p>
+              <div class="download-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitok-0.3.19.1-windows-x64.zip" target="_blank" class="download-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="download-icon">
+                    <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                  </svg>
+                  <div class="download-info">
+                    <div class="download-name">bitok-0.3.19.1-windows-x64.zip</div>
+                    <div class="download-arch">GUI + daemon</div>
+                  </div>
+                </a>
+              </div>
+
+              <p class="content-text"><b>Linux:</b></p>
+              <div class="download-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/Bitok-0.3.19.1-x86_64.AppImage" target="_blank" class="download-btn">
+                  <img src="/linux.svg" alt="Linux" class="download-icon" style="width: 24px; height: 24px;">
+                  <div class="download-info">
+                    <div class="download-name">Bitok-0.3.19.1-x86_64.AppImage</div>
+                    <div class="download-arch">GUI (portable)</div>
+                  </div>
+                </a>
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitokd-0.3.19.1-linux-x86_64.tar.gz" target="_blank" class="download-btn">
+                  <img src="/linux.svg" alt="Linux" class="download-icon" style="width: 24px; height: 24px;">
+                  <div class="download-info">
+                    <div class="download-name">bitokd-0.3.19.1-linux-x86_64.tar.gz</div>
+                    <div class="download-arch">daemon only</div>
+                  </div>
+                </a>
+              </div>
+
+              <p class="content-text"><b>macOS (Apple Silicon):</b></p>
+              <div class="download-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitok-0.3.19.1-macos-arm64.tar.gz" target="_blank" class="download-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="download-icon">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  <div class="download-info">
+                    <div class="download-name">bitok-0.3.19.1-macos-arm64.tar.gz</div>
+                    <div class="download-arch">GUI</div>
+                  </div>
+                </a>
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitokd-0.3.19.1-macos-arm64.tar.gz" target="_blank" class="download-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="download-icon">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  <div class="download-info">
+                    <div class="download-name">bitokd-0.3.19.1-macos-arm64.tar.gz</div>
+                    <div class="download-arch">daemon only</div>
+                  </div>
+                </a>
+              </div>
+
+              <p class="content-text"><b>macOS (Intel):</b></p>
+              <div class="download-grid" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitok-0.3.19.1-macos-x86_64.tar.gz" target="_blank" class="download-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="download-icon">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  <div class="download-info">
+                    <div class="download-name">bitok-0.3.19.1-macos-x86_64.tar.gz</div>
+                    <div class="download-arch">GUI</div>
+                  </div>
+                </a>
+                <a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.1/bitokd-0.3.19.1-macos-x86_64.tar.gz" target="_blank" class="download-btn">
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="download-icon">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  <div class="download-info">
+                    <div class="download-name">bitokd-0.3.19.1-macos-x86_64.tar.gz</div>
+                    <div class="download-arch">daemon only</div>
+                  </div>
+                </a>
+              </div>
+
+              <p class="content-text"><b>Source:</b> <a href="https://github.com/elvisjedusor/bitok" target="_blank" style="color: #0000ee; text-decoration: underline;">https://github.com/elvisjedusor/bitok</a></p>
+            </div>
+          </div>
+
+          <!-- Mining -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Mining</h2>
+            </div>
+            <div class="content-section">
+              <pre style="background: #f9f9f9; border: 1px solid #ccc; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;">./bitokd -gen                    # mine on all cores
+./bitokd -gen -genproclimit=4    # limit to 4 cores</pre>
+              <p class="content-text">In the GUI: Settings > Options > Generate Coins</p>
+              <p class="content-text">No pools needed. Your CPU is enough to find blocks, at least for now while the network is small. The algorithm automatically uses SSE2/AVX/AVX2 if your CPU supports it.</p>
+            </div>
+          </div>
+
+          <!-- Running -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Running</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text">Just extract and run. It connects to other nodes through IRC bootstrap, same as early Bitcoin did. No configuration file needed - everything is command line flags if you want to change defaults.</p>
+              <p class="content-text"><b>Data goes in:</b></p>
+              <ul style="margin-left: 20px; margin-top: 8px; font-family: Arial, sans-serif; font-size: 13px;">
+                <li>Windows: %APPDATA%\Bitok\</li>
+                <li>Linux: ~/.bitok/</li>
+                <li>macOS: ~/Library/Application Support/Bitok/</li>
               </ul>
             </div>
+          </div>
 
-            <div class="content-card">
-              <h2>Blockchain Specifications</h2>
-              <div class="specs-grid">
-                <div class="spec-item">
-                  <div class="spec-label">Algorithm</div>
-                  <div class="spec-value">Yespower 1.0</div>
-                </div>
-                <div class="spec-item">
-                  <div class="spec-label">Block Time</div>
-                  <div class="spec-value">10 minutes</div>
-                </div>
-                <div class="spec-item">
-                  <div class="spec-label">Block Reward</div>
-                  <div class="spec-value">50 BITOK</div>
-                </div>
-                <div class="spec-item">
-                  <div class="spec-label">Max Supply</div>
-                  <div class="spec-value">21,000,000</div>
-                </div>
-                <div class="spec-item">
-                  <div class="spec-label">Difficulty Adjust</div>
-                  <div class="spec-value">Every 2016 blocks</div>
-                </div>
-                <div class="spec-item">
-                  <div class="spec-label">P2P Port</div>
-                  <div class="spec-value">18333</div>
-                </div>
-              </div>
+          <!-- What changed -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">What changed from original Bitcoin</h2>
             </div>
+            <div class="content-section">
+              <p class="content-text">Three things:</p>
+              <p class="content-text">1. Build system updated for modern compilers (OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2)</p>
+              <p class="content-text">2. SHA-256 replaced with Yespower 1.0 for proof-of-work</p>
+              <p class="content-text">3. New genesis block so it's a separate network</p>
+              <p class="content-text">That's it. The transaction format, script system, networking, wallet - all the same as v0.3.19. All the security fixes from that version are included (value overflow protection, DoS limits, etc).</p>
+            </div>
+          </div>
 
-            <div class="content-card">
-              <h2>Links</h2>
-              <div class="links-grid">
-                <a href="https://github.com/elvisjedusor/bitok" target="_blank" class="link-button">
-                  <span class="link-icon">📦</span>
-                  <span>GitHub Repository</span>
-                </a>
-                <a href="https://bitcointalk.org/index.php?topic=5571165.0" target="_blank" class="link-button">
-                  <span class="link-icon">💬</span>
-                  <span>Bitcointalk Thread</span>
-                </a>
-                <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" class="link-button">
-                  <span class="link-icon">📄</span>
-                  <span>Bitcoin Whitepaper</span>
-                </a>
+          <!-- Genesis block -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Genesis block</h2>
+            </div>
+            <div class="content-section">
+              <pre style="background: #f9f9f9; border: 1px solid #ccc; padding: 12px; font-family: 'Courier New', monospace; font-size: 12px; overflow-x: auto;">Hash:      0x0290400ea28d3fe79d102ca6b7cd11cee5eba9f17f2046c303d92f65d6ed2617
+Message:   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+nBits:     0x1effffff
+nNonce:    37137</pre>
+            </div>
+          </div>
+
+          <!-- Why Yespower -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Why Yespower</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text">There was discussion back in 2010 about GPU mining. The concern was that GPUs would eventually take over and regular users wouldn't be able to participate anymore. That's exactly what happened with Bitcoin.</p>
+              <p class="content-text">Yespower is memory-hard (~128KB per hash). GPUs have lots of cores but limited memory bandwidth per core, so they can't get much speedup. It keeps things fair for CPU miners.</p>
+              <p class="content-text">I'm not saying GPUs will never work. Someone clever enough might figure something out. But it raises the barrier significantly.</p>
+            </div>
+          </div>
+
+          <!-- What this is not -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">What this is not</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text">This isn't trying to replace Bitcoin or compete with it. Bitcoin exists and has gone its own way.</p>
+              <p class="content-text">This is just the old code, running as its own thing. If you're curious what Bitcoin was like in 2010, or you want to mine something with your laptop, here it is.</p>
+              <p class="content-text">No promises about price or adoption. If it's useful to people, they'll use it. If not, they won't.</p>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Security</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text">This is code from 2010. The crypto is fine (ECDSA, SHA-256 for non-mining hashes), but the codebase doesn't have 14 years of additional hardening that modern Bitcoin has.</p>
+              <p class="content-text">Back up your wallet.dat. If you lose it, the coins are gone. There's no recovery.</p>
+            </div>
+          </div>
+
+          <!-- Links -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Links</h2>
+            </div>
+            <div class="content-section">
+              <ul style="margin-left: 20px; font-family: Arial, sans-serif; font-size: 13px;">
+                <li>GitHub: <a href="https://github.com/elvisjedusor/bitok" target="_blank" style="color: #0000ee; text-decoration: underline;">https://github.com/elvisjedusor/bitok</a></li>
+                <li>Technical docs: <a href="https://github.com/elvisjedusor/bitok/blob/master/RPC_API.md" target="_blank" style="color: #0000ee; text-decoration: underline;">https://github.com/elvisjedusor/bitok/blob/master/RPC_API.md</a></li>
+                <li>Build instructions: <a href="https://github.com/elvisjedusor/bitok/blob/master/BUILD_UNIX.md" target="_blank" style="color: #0000ee; text-decoration: underline;">https://github.com/elvisjedusor/bitok/blob/master/BUILD_UNIX.md</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- License -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">License</h2>
+            </div>
+            <div class="content-section">
+              <p class="content-text">MIT, same as original Bitcoin.</p>
+            </div>
+          </div>
+
+          <!-- Closing Quote -->
+          <div class="section-card">
+            <div class="content-section" style="border-left: 3px solid #999; padding-left: 12px; background: #f9f9f9;">
+              <p class="content-text" style="font-style: italic;">Writing a description for this thing is bloody hard. There's nothing quite to relate it to.</p>
+              <p class="content-text" style="font-style: italic;"><b>It's Bitcoin, but not Bitcoin. It's new, but also old.</b></p>
+              <p class="content-text" style="font-style: italic;">If you don't get it, that's fine. Run it or don't. The software does what it does regardless.</p>
+              <p class="content-text" style="text-align: right; margin-top: 8px;">- Tom Elvis Jedusor.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page">
+          <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Network overview and blockchain explorer</p>
+          </div>
+
+          <!-- Network Stats -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Network Status</h2>
+            </div>
+            <div class="content-section">
+              <div class="stats-grid">
+                <div class="stat-card primary">
+                  <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-label">Block Height</div>
+                    <div class="stat-value" id="stat-blocks">-</div>
+                  </div>
+                </div>
+
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                    </svg>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-label">Difficulty</div>
+                    <div class="stat-value small" id="stat-difficulty">-</div>
+                  </div>
+                </div>
+
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-label">Mempool</div>
+                    <div class="stat-value" id="stat-mempool">-</div>
+                  </div>
+                </div>
+
+                <div class="stat-card">
+                  <div class="stat-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-label">Network Hashrate</div>
+                    <div class="stat-value mining" id="stat-mining">-</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div id="page-dashboard" class="page">
-            <h1 class="page-title">Network Dashboard</h1>
-
-            <div class="stats-grid" id="network-stats">
-              <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-label">Block Height</div>
-                <div class="stat-value" id="stat-blocks">-</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">⚡</div>
-                <div class="stat-label">Difficulty</div>
-                <div class="stat-value" id="stat-difficulty">-</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">⛏️</div>
-                <div class="stat-label">Network Hashrate</div>
-                <div class="stat-value" id="stat-hashrate">-</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-icon">🌐</div>
-                <div class="stat-label">Connected Peers</div>
-                <div class="stat-value" id="stat-peers">-</div>
-              </div>
+          <!-- Search Section -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Explorer Search</h2>
             </div>
-
-            <div class="content-card">
-              <h2>Recent Blocks</h2>
-              <div id="recent-blocks-list" class="blocks-table"></div>
+            <div class="content-section">
+              <div class="search-container">
+                <input type="text" class="search-input" id="global-search" placeholder="Search block, tx, or address..."/>
+                <button class="search-btn" id="global-search-btn">Search</button>
+              </div>
+              <div id="global-search-result" class="search-result"></div>
             </div>
           </div>
 
-          <div id="page-blocks" class="page">
+          <!-- Recent Blocks -->
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Latest Blocks</h2>
+            </div>
+            <div id="home-blocks-list" class="activity-list"></div>
+          </div>
+        </div>
+
+        <!-- Blocks Page -->
+        <div id="page-blocks" class="page">
+          <div class="page-header">
             <h1 class="page-title">Blocks</h1>
-
-            <div class="search-card">
-              <input
-                type="text"
-                class="search-input"
-                id="block-search"
-                placeholder="Search by block height or hash..."
-              >
-              <button class="btn btn-primary" onclick="app.searchBlock()">Search</button>
-            </div>
-
-            <div id="block-search-result"></div>
-
-            <div class="content-card">
-              <div class="card-header">
-                <h2>All Blocks</h2>
-                <span class="page-indicator">Page <span id="blocks-page-num">1</span></span>
-              </div>
-              <div id="all-blocks-list" class="blocks-table"></div>
-              <div id="blocks-pagination" class="pagination"></div>
-            </div>
+            <p class="page-subtitle">Browse blockchain blocks with full details</p>
           </div>
 
-          <div id="page-transactions" class="page">
+          <div class="section-card">
+            <div id="blocks-content"></div>
+          </div>
+        </div>
+
+        <!-- Transactions Page -->
+        <div id="page-transactions" class="page">
+          <div class="page-header">
             <h1 class="page-title">Transactions</h1>
+            <p class="page-subtitle">Search and view transaction details</p>
+          </div>
 
-            <div class="search-card">
-              <input
-                type="text"
-                class="search-input"
-                id="tx-search"
-                placeholder="Search by transaction hash (txid)..."
-              >
-              <button class="btn btn-primary" onclick="app.searchTransaction()">Search</button>
-            </div>
-
-            <div id="tx-search-result"></div>
-
-            <div class="info-card">
-              <h3>About Transaction Lookup</h3>
-              <p>In Bitcoin 0.3.19, you can only query transactions that are in your connected wallet. This is part of Satoshi's privacy-by-design philosophy.</p>
-              <p>To view any transaction on the blockchain, modern explorers build their own transaction index by scanning every block - a feature not included in the original Bitcoin node.</p>
-              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more about this design choice</button>
+          <div class="search-section">
+            <div class="search-container">
+              <input type="text" class="search-input" id="tx-search" placeholder="Enter transaction ID..."/>
+              <button class="search-btn" id="tx-search-btn">Search</button>
             </div>
           </div>
 
-          <div id="page-addresses" class="page">
+          <div class="section-card">
+            <div id="tx-content"></div>
+          </div>
+        </div>
+
+        <!-- Mempool Page -->
+        <div id="page-mempool" class="page">
+          <div class="page-header">
+            <h1 class="page-title">Mempool</h1>
+            <p class="page-subtitle">Unconfirmed transactions waiting for confirmation</p>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header">
+              <h2 class="section-title">Pending Transactions</h2>
+              <span class="section-badge" id="mempool-count">0</span>
+            </div>
+            <div id="mempool-list"></div>
+          </div>
+        </div>
+
+        <!-- Addresses Page -->
+        <div id="page-addresses" class="page">
+          <div class="page-header">
             <h1 class="page-title">Addresses</h1>
+            <p class="page-subtitle">Search addresses and view balances</p>
+          </div>
 
-            <div class="search-card">
-              <input
-                type="text"
-                class="search-input"
-                id="address-search"
-                placeholder="Search by Bitok address..."
-              >
-              <button class="btn btn-primary" onclick="app.searchAddress()">Search</button>
-            </div>
-
-            <div id="address-search-result"></div>
-
-            <div class="info-card">
-              <h3>About Address Balances</h3>
-              <p><strong>Privacy by Design:</strong> In Satoshi's original Bitcoin, you can only query full balance details for addresses in your own wallet.</p>
-              <p>For any address, you CAN see the total amount ever received (this is public blockchain data). But to see the current balance and UTXOs, the address must be in the connected wallet.</p>
-              <p>This prevents users from easily surveilling other users' balances and spending habits.</p>
-              <button class="btn-link" onclick="app.showPrivacyInfo()">Learn more about this design choice</button>
+          <div class="search-section">
+            <div class="search-container">
+              <input type="text" class="search-input" id="addr-search" placeholder="Enter address..."/>
+              <button class="search-btn" id="addr-search-btn">Search</button>
             </div>
           </div>
+
+          <div class="section-card">
+            <div id="addr-content"></div>
+          </div>
         </div>
+
       </main>
-
-      <footer class="footer">
-        <div class="container">
-          <p>Bitok Explorer - Built on Bitcoin 0.3.19 • <a href="https://github.com/elvisjedusor/bitok" target="_blank">GitHub</a></p>
-        </div>
-      </footer>
     </div>
-
-    <div id="modal-overlay" class="modal-overlay" onclick="app.closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-header">
-          <h3 id="modal-title"></h3>
-          <button class="modal-close" onclick="app.closeModal()">×</button>
-        </div>
-        <div class="modal-body" id="modal-body"></div>
-      </div>
-    </div>
-
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
