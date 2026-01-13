@@ -39,6 +39,22 @@ rpc = BitokRPC(
 COIN = 100000000
 
 
+@app.template_filter('coin')
+def coin_filter(value):
+    """Convert satoshis to coins"""
+    if value is None:
+        return '0.00000000'
+    return '{:.8f}'.format(value / COIN)
+
+
+@app.template_filter('timestamp')
+def timestamp_filter(value):
+    """Convert unix timestamp to readable date"""
+    if value is None:
+        return 'N/A'
+    return datetime.fromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
+
+
 @contextmanager
 def get_session():
     session = Session()
