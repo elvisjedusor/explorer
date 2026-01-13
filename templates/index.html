@@ -28,8 +28,8 @@
         <div class="stat-value" id="stat-txs">{{ "{:,}".format(stats.total_txs | default(0)) }}</div>
     </div>
     <div class="stat-card">
-        <div class="stat-label">Addresses</div>
-        <div class="stat-value" id="stat-addresses">{{ "{:,}".format(stats.total_addresses | default(0)) }}</div>
+        <div class="stat-label">Network Hashrate</div>
+        <div class="stat-value" id="stat-hashrate">{{ stats.hashrate_formatted | default('0 H/s') }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Network Connections</div>
@@ -122,7 +122,7 @@ function updateHomePage() {
             document.getElementById('stat-height').textContent = data.stats.height;
             document.getElementById('stat-difficulty').textContent = data.stats.difficulty.toFixed(4);
             document.getElementById('stat-txs').textContent = formatNumber(data.stats.total_txs);
-            document.getElementById('stat-addresses').textContent = formatNumber(data.stats.total_addresses);
+            document.getElementById('stat-hashrate').textContent = data.stats.hashrate_formatted;
             document.getElementById('stat-connections').textContent = data.stats.connections;
 
             if (data.stats.synced) {

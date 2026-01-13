@@ -37,6 +37,8 @@ rpc = BitokRPC(
 )
 
 COIN = 100000000
+BLOCK_TIME = 600
+MAX_TARGET = 0xffffff * (2 ** 216)
 
 
 @app.template_filter('coin')
@@ -96,6 +98,61 @@ def format_age(ts):
     return f'{minutes}m ago'
 
 
+def calculate_hashrate_from_blocks(session, difficulty):
+    """
+    Calculate actual hashrate based on recent block times.
+
+    Uses the last N blocks to determine actual average block time,
+    which gives real network hashrate rather than theoretical.
+    """
+    if difficulty is None or difficulty <= 0:
+        return 0, BLOCK_TIME
+
+    NUM_BLOCKS = 50
+
+    recent_blocks = session.query(Block.timestamp).order_by(
+        desc(Block.height)
+    ).limit(NUM_BLOCKS + 1).all()
+
+    if len(recent_blocks) < 2:
+        actual_block_time = BLOCK_TIME
+    else:
+        timestamps = [b.timestamp for b in recent_blocks if b.timestamp]
+        if len(timestamps) >= 2:
+            time_span = timestamps[0] - timestamps[-1]
+            blocks_in_span = len(timestamps) - 1
+            actual_block_time = time_span / blocks_in_span if blocks_in_span > 0 else BLOCK_TIME
+            actual_block_time = max(1, actual_block_time)
+        else:
+            actual_block_time = BLOCK_TIME
+
+    hashrate = difficulty * (2 ** 256) / MAX_TARGET / actual_block_time
+    return hashrate, actual_block_time
+
+
+def calculate_hashrate(difficulty):
+    """Fallback: theoretical hashrate based on difficulty only"""
+    if difficulty is None or difficulty <= 0:
+        return 0
+    hashrate = difficulty * (2 ** 256) / MAX_TARGET / BLOCK_TIME
+    return hashrate
+
+
+def format_hashrate(hashrate):
+    if hashrate is None or hashrate <= 0:
+        return '0 H/s'
+    if hashrate >= 1e12:
+        return f'{hashrate / 1e12:.2f} TH/s'
+    elif hashrate >= 1e9:
+        return f'{hashrate / 1e9:.2f} GH/s'
+    elif hashrate >= 1e6:
+        return f'{hashrate / 1e6:.2f} MH/s'
+    elif hashrate >= 1e3:
+        return f'{hashrate / 1e3:.2f} kH/s'
+    else:
+        return f'{hashrate:.2f} H/s'
+
+
 app.jinja_env.filters['coin'] = format_coin
 app.jinja_env.filters['timestamp'] = format_timestamp
 app.jinja_env.filters['age'] = format_age
@@ -116,7 +173,6 @@ def get_network_stats():
         latest_block = session.query(Block).order_by(desc(Block.height)).first()
 
         total_txs = session.query(func.count(Transaction.id)).scalar() or 0
-        total_addresses = session.query(func.count(Address.id)).scalar() or 0
 
         try:
             info = rpc.getinfo()
@@ -131,13 +187,18 @@ def get_network_stats():
             connections = 0
             chain_height = synced
 
+        hashrate, avg_block_time = calculate_hashrate_from_blocks(session, difficulty)
+        hashrate_formatted = format_hashrate(hashrate)
+
         return {
             'height': synced,
             'chain_height': chain_height,
             'difficulty': difficulty,
             'connections': connections,
             'total_txs': total_txs,
-            'total_addresses': total_addresses,
+            'hashrate': hashrate,
+            'hashrate_formatted': hashrate_formatted,
+            'avg_block_time': avg_block_time,
             'latest_block': latest_block
         }
 
@@ -403,7 +464,10 @@ def api_stats():
         'difficulty': stats['difficulty'],
         'connections': stats['connections'],
         'total_txs': stats['total_txs'],
-        'total_addresses': stats['total_addresses']
+        'hashrate': stats['hashrate'],
+        'hashrate_formatted': stats['hashrate_formatted'],
+        'avg_block_time': round(stats['avg_block_time'], 1),
+        'target_block_time': BLOCK_TIME
     })
 
 
@@ -441,7 +505,10 @@ def api_home():
                 'difficulty': stats['difficulty'],
                 'connections': stats['connections'],
                 'total_txs': stats['total_txs'],
-                'total_addresses': stats['total_addresses'],
+                'hashrate': stats['hashrate'],
+                'hashrate_formatted': stats['hashrate_formatted'],
+                'avg_block_time': round(stats['avg_block_time'], 1),
+                'target_block_time': BLOCK_TIME,
                 'synced': stats['height'] == stats['chain_height']
             },
             'recent_blocks': blocks_data,
