@@ -99,6 +99,8 @@ def format_age(ts):
 app.jinja_env.filters['coin'] = format_coin
 app.jinja_env.filters['timestamp'] = format_timestamp
 app.jinja_env.filters['age'] = format_age
+app.jinja_env.globals['max'] = max
+app.jinja_env.globals['min'] = min
 
 
 @app.teardown_appcontext
