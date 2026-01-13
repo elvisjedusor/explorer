@@ -6,27 +6,27 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-label">Block Height</div>
-        <div class="stat-value">{{ stats.height | default(0) | int }}</div>
+        <div class="stat-value" id="stat-height">{{ stats.height | default(0) | int }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Difficulty</div>
-        <div class="stat-value">{{ "%.4f" | format(stats.difficulty | default(0)) }}</div>
+        <div class="stat-value" id="stat-difficulty">{{ "%.4f" | format(stats.difficulty | default(0)) }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Transactions</div>
-        <div class="stat-value">{{ "{:,}".format(stats.total_txs | default(0)) }}</div>
+        <div class="stat-value" id="stat-txs">{{ "{:,}".format(stats.total_txs | default(0)) }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Addresses</div>
-        <div class="stat-value">{{ "{:,}".format(stats.total_addresses | default(0)) }}</div>
+        <div class="stat-value" id="stat-addresses">{{ "{:,}".format(stats.total_addresses | default(0)) }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Network Connections</div>
-        <div class="stat-value">{{ stats.connections | default(0) }}</div>
+        <div class="stat-value" id="stat-connections">{{ stats.connections | default(0) }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Sync Status</div>
-        <div class="stat-value">
+        <div class="stat-value" id="stat-sync">
             {% if stats.height == stats.chain_height %}
             <span class="badge badge-success">Synced</span>
             {% else %}
@@ -48,7 +48,7 @@
                     <th>Age</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="blocks-table">
                 {% for block in recent_blocks %}
                 <tr>
                     <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
@@ -78,7 +78,7 @@
                     <th>Amount</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="txs-table">
                 {% for tx in recent_txs %}
                 <tr>
                     <td class="hash truncate"><a href="/tx/{{ tx.txid }}">{{ tx.txid[:16] }}...</a></td>
@@ -102,4 +102,62 @@
     }
 }
 </style>
+
+<script>
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function updateHomePage() {
+    fetch('/api/home')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('stat-height').textContent = data.stats.height;
+            document.getElementById('stat-difficulty').textContent = data.stats.difficulty.toFixed(4);
+            document.getElementById('stat-txs').textContent = formatNumber(data.stats.total_txs);
+            document.getElementById('stat-addresses').textContent = formatNumber(data.stats.total_addresses);
+            document.getElementById('stat-connections').textContent = data.stats.connections;
+
+            if (data.stats.synced) {
+                document.getElementById('stat-sync').innerHTML = '<span class="badge badge-success">Synced</span>';
+            } else {
+                document.getElementById('stat-sync').innerHTML = '<span class="badge badge-warning">' + data.stats.height + '/' + data.stats.chain_height + '</span>';
+            }
+
+            var blocksHtml = '';
+            if (data.recent_blocks.length === 0) {
+                blocksHtml = '<tr><td colspan="4" style="text-align: center; color: #666;">No blocks yet. Start the sync process.</td></tr>';
+            } else {
+                data.recent_blocks.forEach(function(block) {
+                    blocksHtml += '<tr>';
+                    blocksHtml += '<td><a href="/block/' + block.height + '">' + block.height + '</a></td>';
+                    blocksHtml += '<td class="hash truncate"><a href="/block/' + block.hash + '">' + block.hash.substring(0, 16) + '...</a></td>';
+                    blocksHtml += '<td>' + block.tx_count + '</td>';
+                    blocksHtml += '<td>' + block.age + '</td>';
+                    blocksHtml += '</tr>';
+                });
+            }
+            document.getElementById('blocks-table').innerHTML = blocksHtml;
+
+            var txsHtml = '';
+            if (data.recent_txs.length === 0) {
+                txsHtml = '<tr><td colspan="3" style="text-align: center; color: #666;">No transactions yet.</td></tr>';
+            } else {
+                data.recent_txs.forEach(function(tx) {
+                    txsHtml += '<tr>';
+                    txsHtml += '<td class="hash truncate"><a href="/tx/' + tx.txid + '">' + tx.txid.substring(0, 16) + '...</a></td>';
+                    txsHtml += '<td><a href="/block/' + tx.block_height + '">' + tx.block_height + '</a></td>';
+                    txsHtml += '<td>' + tx.total_output + ' ' + data.coin_symbol + '</td>';
+                    txsHtml += '</tr>';
+                });
+            }
+            document.getElementById('txs-table').innerHTML = txsHtml;
+        })
+        .catch(function(error) {
+            console.error('Error updating data:', error);
+        });
+}
+
+setInterval(updateHomePage, 10000);
+</script>
 {% endblock %}

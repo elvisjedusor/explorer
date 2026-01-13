@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="card">
-    <h2 class="card-title">All Blocks ({{ "{:,}".format(total) }} total)</h2>
+    <h2 class="card-title">All Blocks (<span id="blocks-total">{{ "{:,}".format(total) }}</span> total)</h2>
     <table>
         <thead>
             <tr>
@@ -15,7 +15,7 @@
                 <th>Time</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="blocks-table">
             {% for block in blocks %}
             <tr>
                 <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
@@ -33,7 +33,7 @@
     </table>
 
     {% if total_pages > 1 %}
-    <div class="pagination">
+    <div class="pagination" id="blocks-pagination">
         {% if page > 1 %}
         <a href="/blocks/1">First</a>
         <a href="/blocks/{{ page - 1 }}">Prev</a>
@@ -54,4 +54,61 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+(function() {
+    const currentPage = {{ page }};
+    const coinSymbol = '{{ config.COIN_SYMBOL }}';
+
+    function refreshBlocks() {
+        fetch('/api/blocks/' + currentPage)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('blocks-total').textContent = data.total.toLocaleString();
+
+                const tbody = document.getElementById('blocks-table');
+                if (data.blocks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No blocks found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.blocks.map(b => `
+                    <tr>
+                        <td><a href="/block/${b.height}">${b.height}</a></td>
+                        <td class="hash truncate"><a href="/block/${b.hash}">${b.hash.slice(0, 20)}...</a></td>
+                        <td>${b.tx_count}</td>
+                        <td>${b.total_value} ${coinSymbol}</td>
+                        <td>${b.timestamp}</td>
+                    </tr>
+                `).join('');
+
+                const pagination = document.getElementById('blocks-pagination');
+                if (pagination && data.total_pages > 1) {
+                    let html = '';
+                    if (currentPage > 1) {
+                        html += '<a href="/blocks/1">First</a>';
+                        html += `<a href="/blocks/${currentPage - 1}">Prev</a>`;
+                    }
+                    const start = Math.max(1, currentPage - 2);
+                    const end = Math.min(data.total_pages + 1, currentPage + 3);
+                    for (let p = start; p < end; p++) {
+                        if (p === currentPage) {
+                            html += `<span class="active">${p}</span>`;
+                        } else {
+                            html += `<a href="/blocks/${p}">${p}</a>`;
+                        }
+                    }
+                    if (currentPage < data.total_pages) {
+                        html += `<a href="/blocks/${currentPage + 1}">Next</a>`;
+                        html += `<a href="/blocks/${data.total_pages}">Last</a>`;
+                    }
+                    pagination.innerHTML = html;
+                }
+            })
+            .catch(err => console.error('Failed to refresh blocks:', err));
+    }
+
+    setInterval(refreshBlocks, 10000);
+})();
+</script>
 {% endblock %}

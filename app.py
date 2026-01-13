@@ -397,6 +397,81 @@ def api_stats():
     })
 
 
+@app.route('/api/home')
+def api_home():
+    with get_session() as session:
+        stats = get_network_stats()
+
+        recent_blocks = session.query(Block).order_by(
+            desc(Block.height)
+        ).limit(10).all()
+
+        recent_txs = session.query(Transaction).order_by(
+            desc(Transaction.id)
+        ).limit(10).all()
+
+        blocks_data = [{
+            'height': b.height,
+            'hash': b.hash,
+            'tx_count': b.tx_count,
+            'timestamp': b.timestamp,
+            'age': format_age(b.timestamp)
+        } for b in recent_blocks]
+
+        txs_data = [{
+            'txid': tx.txid,
+            'block_height': tx.block_height,
+            'total_output': format_coin(tx.total_output)
+        } for tx in recent_txs]
+
+        return jsonify({
+            'stats': {
+                'height': stats['height'],
+                'chain_height': stats['chain_height'],
+                'difficulty': stats['difficulty'],
+                'connections': stats['connections'],
+                'total_txs': stats['total_txs'],
+                'total_addresses': stats['total_addresses'],
+                'synced': stats['height'] == stats['chain_height']
+            },
+            'recent_blocks': blocks_data,
+            'recent_txs': txs_data,
+            'coin_symbol': config.COIN_SYMBOL
+        })
+
+
+@app.route('/api/blocks')
+@app.route('/api/blocks/<int:page>')
+def api_blocks(page=1):
+    with get_session() as session:
+        per_page = config.ITEMS_PER_PAGE
+        total = session.query(func.count(Block.id)).scalar() or 0
+        total_pages = max(1, (total + per_page - 1) // per_page)
+
+        if page < 1 or page > total_pages:
+            page = 1
+
+        blocks_list = session.query(Block).order_by(
+            desc(Block.height)
+        ).offset((page - 1) * per_page).limit(per_page).all()
+
+        blocks_data = [{
+            'height': b.height,
+            'hash': b.hash,
+            'tx_count': b.tx_count,
+            'total_value': format_coin(b.total_value),
+            'timestamp': format_timestamp(b.timestamp)
+        } for b in blocks_list]
+
+        return jsonify({
+            'blocks': blocks_data,
+            'page': page,
+            'total_pages': total_pages,
+            'total': total,
+            'coin_symbol': config.COIN_SYMBOL
+        })
+
+
 @app.route('/api/block/<block_id>')
 def api_block(block_id):
     with get_session() as session:
