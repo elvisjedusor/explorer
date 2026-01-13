@@ -5,15 +5,15 @@
 {% block content %}
 <div class="card">
     <h2 class="card-title">Search Results</h2>
-    <p style="color: #888; margin-bottom: 20px;">No results found for: <strong style="color: #fff;">{{ query }}</strong></p>
+    <p style="color: #666; margin-bottom: 20px;">No results found for: <strong style="color: #333;">{{ query }}</strong></p>
 
-    <div style="padding: 30px; text-align: center; background: #1a1a1a; border-radius: 8px;">
+    <div style="padding: 30px; text-align: center; background: #f5f5f5; border: 1px solid #ddd;">
         <p style="color: #666; margin-bottom: 15px;">Try searching for:</p>
-        <ul style="list-style: none; color: #888;">
-            <li style="margin: 8px 0;">Block hash (64 hex characters)</li>
-            <li style="margin: 8px 0;">Block height (number)</li>
-            <li style="margin: 8px 0;">Transaction ID (64 hex characters)</li>
-            <li style="margin: 8px 0;">{{ config.COIN_NAME }} address (26-35 characters)</li>
+        <ul style="list-style: none; color: #555;">
+            <li style="margin: 10px 0;">Block hash (64 hex characters)</li>
+            <li style="margin: 10px 0;">Block height (number)</li>
+            <li style="margin: 10px 0;">Transaction ID (64 hex characters)</li>
+            <li style="margin: 10px 0;">{{ config.COIN_NAME }} address (26-35 characters)</li>
         </ul>
     </div>
 </div>

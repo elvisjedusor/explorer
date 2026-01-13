@@ -203,6 +203,11 @@ def download():
     return render_template('download.html', config=config)
 
 
+@app.route('/about')
+def about():
+    return render_template('about.html', config=config)
+
+
 @app.route('/block/<block_id>')
 def block(block_id):
     with get_session() as session:

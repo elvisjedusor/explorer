@@ -4,14 +4,14 @@
 
 {% block content %}
 <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div class="block-header">
         <h2 class="card-title" style="margin-bottom: 0;">Block {{ block.height }}</h2>
-        <div style="display: flex; gap: 10px;">
+        <div class="block-nav">
             {% if prev_block %}
-            <a href="/block/{{ prev_block.height }}" class="search-btn" style="background: #333;">&larr; Previous</a>
+            <a href="/block/{{ prev_block.height }}" class="search-btn" style="background: #333; color: #fff;">&larr; Prev</a>
             {% endif %}
             {% if next_block %}
-            <a href="/block/{{ next_block.height }}" class="search-btn" style="background: #333;">Next &rarr;</a>
+            <a href="/block/{{ next_block.height }}" class="search-btn" style="background: #333; color: #fff;">Next &rarr;</a>
             {% endif %}
         </div>
     </div>
@@ -66,35 +66,69 @@
 
 <div class="card">
     <h2 class="card-title">Transactions ({{ transactions | length }})</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>TxID</th>
-                <th>Type</th>
-                <th>Total Output</th>
-                <th>Fee</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tx in transactions %}
-            <tr>
-                <td class="hash truncate"><a href="/tx/{{ tx.txid }}">{{ tx.txid[:20] }}...</a></td>
-                <td>
-                    {% if tx.is_coinbase %}
-                    <span class="badge badge-success">Coinbase</span>
-                    {% else %}
-                    <span class="badge badge-info">Transfer</span>
-                    {% endif %}
-                </td>
-                <td>{{ tx.total_output | coin }} {{ config.COIN_SYMBOL }}</td>
-                <td>{{ tx.fee | coin }} {{ config.COIN_SYMBOL }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4" style="text-align: center; color: #666;">No transactions in this block.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>TxID</th>
+                    <th>Type</th>
+                    <th>Output</th>
+                    <th>Fee</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in transactions %}
+                <tr>
+                    <td class="hash truncate"><a href="/tx/{{ tx.txid }}">{{ tx.txid[:20] }}...</a></td>
+                    <td>
+                        {% if tx.is_coinbase %}
+                        <span class="badge badge-success">Coinbase</span>
+                        {% else %}
+                        <span class="badge badge-info">Transfer</span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space: nowrap;">{{ tx.total_output | coin }} {{ config.COIN_SYMBOL }}</td>
+                    <td style="white-space: nowrap;">{{ tx.fee | coin }} {{ config.COIN_SYMBOL }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #666;">No transactions in this block.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<style>
+.block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.block-nav {
+    display: flex;
+    gap: 8px;
+}
+@media (max-width: 600px) {
+    .block-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .block-header .card-title {
+        text-align: center;
+    }
+    .block-nav {
+        justify-content: center;
+    }
+    .block-nav a {
+        flex: 1;
+        text-align: center;
+        padding: 10px 12px;
+    }
+}
+</style>
 {% endblock %}

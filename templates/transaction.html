@@ -48,15 +48,15 @@
 
     <div class="io-section">
         <div>
-            <h3 style="color: #888; font-size: 14px; margin-bottom: 15px;">INPUTS ({{ inputs | length }})</h3>
+            <h3 class="io-title">INPUTS ({{ inputs | length }})</h3>
             <ul class="io-list">
                 {% for inp in inputs %}
                 <li class="io-item">
                     {% if inp.coinbase %}
-                    <div style="color: #10b981;">Coinbase (Block Reward)</div>
-                    <div class="hash" style="font-size: 12px; color: #666; margin-top: 5px;">{{ inp.coinbase[:60] }}{% if inp.coinbase|length > 60 %}...{% endif %}</div>
+                    <div style="color: #10b981; font-weight: bold;">Coinbase (Block Reward)</div>
+                    <div class="hash" style="font-size: 11px; color: #666; margin-top: 5px;">{{ inp.coinbase[:40] }}{% if inp.coinbase|length > 40 %}...{% endif %}</div>
                     {% else %}
-                    <div>
+                    <div class="io-address">
                         {% if inp.address %}
                         <a href="/address/{{ inp.address }}">{{ inp.address }}</a>
                         {% else %}
@@ -67,8 +67,8 @@
                         <span style="color: #888;">Value:</span>
                         <span class="amount-negative">{{ inp.value | coin }} {{ config.COIN_SYMBOL }}</span>
                     </div>
-                    <div class="hash" style="font-size: 11px; color: #666; margin-top: 5px;">
-                        From: <a href="/tx/{{ inp.prev_txid }}">{{ inp.prev_txid[:30] }}...</a> [{{ inp.prev_vout }}]
+                    <div class="hash io-from" style="font-size: 11px; color: #666; margin-top: 5px;">
+                        From: <a href="/tx/{{ inp.prev_txid }}">{{ inp.prev_txid[:20] }}...</a> [{{ inp.prev_vout }}]
                     </div>
                     {% endif %}
                 </li>
@@ -79,11 +79,11 @@
         <div class="io-arrow">&rarr;</div>
 
         <div>
-            <h3 style="color: #888; font-size: 14px; margin-bottom: 15px;">OUTPUTS ({{ outputs | length }})</h3>
+            <h3 class="io-title">OUTPUTS ({{ outputs | length }})</h3>
             <ul class="io-list">
                 {% for out in outputs %}
                 <li class="io-item">
-                    <div>
+                    <div class="io-address">
                         {% if out.address %}
                         <a href="/address/{{ out.address }}">{{ out.address }}</a>
                         {% else %}
@@ -107,4 +107,25 @@
         </div>
     </div>
 </div>
+
+<style>
+.io-title {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.io-address {
+    word-break: break-all;
+}
+@media (max-width: 900px) {
+    .io-title {
+        font-size: 13px;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .io-arrow {
+        padding: 10px 0 !important;
+    }
+}
+</style>
 {% endblock %}

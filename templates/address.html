@@ -44,34 +44,36 @@
 
 <div class="card">
     <h2 class="card-title">Transaction History ({{ total }} total)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>TxID</th>
-                <th>Block</th>
-                <th>Received</th>
-                <th>Sent</th>
-                <th>Net</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in transactions %}
-            <tr>
-                <td class="hash truncate"><a href="/tx/{{ item.tx.txid }}">{{ item.tx.txid[:20] }}...</a></td>
-                <td><a href="/block/{{ item.tx.block_height }}">{{ item.tx.block_height }}</a></td>
-                <td class="amount-positive">{% if item.received > 0 %}+{{ item.received | coin }}{% endif %}</td>
-                <td class="amount-negative">{% if item.sent > 0 %}-{{ item.sent | coin }}{% endif %}</td>
-                <td {% if item.net >= 0 %}class="amount-positive"{% else %}class="amount-negative"{% endif %}>
-                    {% if item.net >= 0 %}+{% endif %}{{ item.net | coin }} {{ config.COIN_SYMBOL }}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="5" style="text-align: center; color: #666;">No transactions for this address.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>TxID</th>
+                    <th>Block</th>
+                    <th>Received</th>
+                    <th>Sent</th>
+                    <th>Net</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transactions %}
+                <tr>
+                    <td class="hash truncate"><a href="/tx/{{ item.tx.txid }}">{{ item.tx.txid[:16] }}...</a></td>
+                    <td><a href="/block/{{ item.tx.block_height }}">{{ item.tx.block_height }}</a></td>
+                    <td class="amount-positive" style="white-space: nowrap;">{% if item.received > 0 %}+{{ item.received | coin }}{% endif %}</td>
+                    <td class="amount-negative" style="white-space: nowrap;">{% if item.sent > 0 %}-{{ item.sent | coin }}{% endif %}</td>
+                    <td {% if item.net >= 0 %}class="amount-positive"{% else %}class="amount-negative"{% endif %} style="white-space: nowrap;">
+                        {% if item.net >= 0 %}+{% endif %}{{ item.net | coin }} {{ config.COIN_SYMBOL }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #666;">No transactions for this address.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% if total_pages > 1 %}
     <div class="pagination">

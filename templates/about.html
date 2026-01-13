@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}About - {{ config.COIN_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card about-page">
+    <h1 class="about-title">Bitok - 0.3.19 Mainnet</h1>
+
+    <div class="about-section">
+        <p>What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase? No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+
+        <p>Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement. Everything after that is history. Not destiny.</p>
+
+        <p>I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and <strong>resist GPU mining</strong>.</p>
+
+        <p>The main change is replacing SHA-256 with Yespower for proof-of-work. It's memory-hard, so GPUs don't have much advantage. Anyone with a laptop can mine. I think that's how it was supposed to be.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Specifications</h2>
+        <pre class="code-block">Algorithm:          Yespower 1.0 (N=2048, r=32) pers="BitokPoW"
+Block time:         10 minutes
+Block reward:       50 BITOK
+Halving:            every 210,000 blocks
+Max supply:         21,000,000
+Difficulty adjust:  every 2016 blocks
+Coinbase maturity:  100 blocks
+P2P port:           18333
+RPC port:           8332</pre>
+        <p>Same economics as Bitcoin. 21 million coins, halving every 4 years, etc.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Mining</h2>
+        <pre class="code-block">./bitokd -gen                    # mine on all cores
+./bitokd -gen -genproclimit=4    # limit to 4 cores</pre>
+        <p>In the GUI: Settings > Options > Generate Coins</p>
+        <p>No pools needed. Your CPU is enough to find blocks, at least for now while the network is small. The algorithm automatically uses SSE2/AVX/AVX2 if your CPU supports it.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Running</h2>
+        <p>Just extract and run. It connects to other nodes through IRC bootstrap, same as early Bitcoin did. No configuration file needed - everything is command line flags if you want to change defaults.</p>
+        <p>Data goes in:</p>
+        <ul class="data-paths">
+            <li><strong>Windows:</strong> %APPDATA%\Bitok\</li>
+            <li><strong>Linux:</strong> ~/.bitok/</li>
+            <li><strong>macOS:</strong> ~/Library/Application Support/Bitok/</li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h2>What changed from original Bitcoin</h2>
+        <p>Three things:</p>
+        <ol class="changes-list">
+            <li>Build system updated for modern compilers (OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2)</li>
+            <li>SHA-256 replaced with Yespower 1.0 for proof-of-work</li>
+            <li>New genesis block so it's a separate network</li>
+        </ol>
+        <p>That's it. The transaction format, script system, networking, wallet - all the same as v0.3.19. All the security fixes from that version are included (value overflow protection, DoS limits, etc).</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Genesis block</h2>
+        <pre class="code-block">Hash:      0x0290400ea28d3fe79d102ca6b7cd11cee5eba9f17f2046c303d92f65d6ed2617
+Message:   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+nBits:     0x1effffff
+nNonce:    37137</pre>
+    </div>
+
+    <div class="about-section">
+        <h2>Why Yespower</h2>
+        <p>There was discussion back in 2010 about GPU mining. The concern was that GPUs would eventually take over and regular users wouldn't be able to participate anymore. That's exactly what happened with Bitcoin.</p>
+        <p>Yespower is memory-hard (~128KB per hash). GPUs have lots of cores but limited memory bandwidth per core, so they can't get much speedup. It keeps things fair for CPU miners.</p>
+        <p>I'm not saying GPUs will never work. Someone clever enough might figure something out. But it raises the barrier significantly.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>What this is not</h2>
+        <p>This isn't trying to replace Bitcoin or compete with it. Bitcoin exists and has gone its own way.</p>
+        <p>This is just the old code, running as its own thing. If you're curious what Bitcoin was like in 2010, or you want to mine something with your laptop, here it is.</p>
+        <p>No promises about price or adoption. If it's useful to people, they'll use it. If not, they won't.</p>
+    </div>
+
+    <div class="about-section">
+        <h2>Security</h2>
+        <p>This is code from 2010. The crypto is fine (ECDSA, SHA-256 for non-mining hashes), but the codebase doesn't have 14 years of additional hardening that modern Bitcoin has.</p>
+        <p><strong>Back up your wallet.dat. If you lose it, the coins are gone. There's no recovery.</strong></p>
+    </div>
+
+    <div class="about-section">
+        <h2>Links</h2>
+        <ul class="links-list">
+            <li>GitHub: <a href="https://github.com/elvisjedusor/bitok">https://github.com/elvisjedusor/bitok</a></li>
+            <li>Technical docs: <a href="https://github.com/elvisjedusor/bitok/blob/master/RPC_API.md">RPC_API.md</a></li>
+            <li>Build instructions: <a href="https://github.com/elvisjedusor/bitok/blob/master/BUILD_UNIX.md">BUILD_UNIX.md</a></li>
+        </ul>
+    </div>
+
+    <div class="about-section">
+        <h2>License</h2>
+        <p>MIT, same as original Bitcoin.</p>
+    </div>
+
+    <hr class="about-divider">
+
+    <div class="about-footer">
+        <p><em>Writing a description for this thing is bloody hard. There's nothing quite to relate it to.</em></p>
+        <p class="tagline"><strong>It's Bitcoin, but not Bitcoin. It's new, but also old.</strong></p>
+        <p><em>If you don't get it, that's fine. Run it or don't. The software does what it does regardless.</em></p>
+        <p class="signature">- Tom Elvis Jedusor.</p>
+    </div>
+</div>
+
+<style>
+.about-page {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.about-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #c59000;
+}
+.about-section {
+    margin-bottom: 25px;
+}
+.about-section h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ddd;
+}
+.about-section p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: #444;
+}
+.code-block {
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    padding: 12px 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0;
+    -webkit-overflow-scrolling: touch;
+}
+.data-paths, .changes-list, .links-list {
+    margin: 12px 0 12px 20px;
+    line-height: 1.8;
+    color: #444;
+}
+.data-paths li, .links-list li {
+    list-style: disc;
+    margin-bottom: 6px;
+}
+.changes-list li {
+    margin-bottom: 8px;
+}
+.about-divider {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 30px 0;
+}
+.about-footer {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 20px;
+}
+.about-footer p {
+    margin-bottom: 10px;
+    color: #555;
+    line-height: 1.6;
+}
+.about-footer .tagline {
+    font-size: 16px;
+    text-align: center;
+    margin: 15px 0;
+    color: #333;
+}
+.about-footer .signature {
+    text-align: right;
+    font-style: italic;
+    color: #666;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+@media (max-width: 768px) {
+    .about-title {
+        font-size: 20px;
+    }
+    .about-section h2 {
+        font-size: 16px;
+    }
+    .about-section p {
+        font-size: 14px;
+    }
+    .code-block {
+        font-size: 11px;
+        padding: 10px 12px;
+    }
+    .data-paths, .changes-list, .links-list {
+        margin-left: 15px;
+        font-size: 14px;
+    }
+    .about-footer {
+        padding: 15px;
+    }
+    .about-footer .tagline {
+        font-size: 15px;
+    }
+}
+@media (max-width: 480px) {
+    .about-title {
+        font-size: 18px;
+    }
+    .about-section h2 {
+        font-size: 15px;
+    }
+    .code-block {
+        font-size: 10px;
+        padding: 8px 10px;
+    }
+}
+</style>
+{% endblock %}

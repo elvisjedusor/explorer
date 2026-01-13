@@ -5,32 +5,34 @@
 {% block content %}
 <div class="card">
     <h2 class="card-title">All Blocks (<span id="blocks-total">{{ "{:,}".format(total) }}</span> total)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Height</th>
-                <th>Hash</th>
-                <th>Transactions</th>
-                <th>Total Value</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody id="blocks-table">
-            {% for block in blocks %}
-            <tr>
-                <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
-                <td class="hash truncate"><a href="/block/{{ block.hash }}">{{ block.hash[:20] }}...</a></td>
-                <td>{{ block.tx_count }}</td>
-                <td>{{ block.total_value | coin }} {{ config.COIN_SYMBOL }}</td>
-                <td>{{ block.timestamp | timestamp }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="5" style="text-align: center; color: #666;">No blocks found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Height</th>
+                    <th>Hash</th>
+                    <th>Txs</th>
+                    <th>Value</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="blocks-table">
+                {% for block in blocks %}
+                <tr>
+                    <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
+                    <td class="hash truncate"><a href="/block/{{ block.hash }}">{{ block.hash[:20] }}...</a></td>
+                    <td>{{ block.tx_count }}</td>
+                    <td>{{ block.total_value | coin }} {{ config.COIN_SYMBOL }}</td>
+                    <td style="white-space: nowrap;">{{ block.timestamp | timestamp }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #666;">No blocks found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% if total_pages > 1 %}
     <div class="pagination" id="blocks-pagination">
