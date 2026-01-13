@@ -3,6 +3,7 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import scoped_session
 from datetime import datetime
 from contextlib import contextmanager
+import logging
 
 from config import Config
 from models import init_db, Block, Transaction, TxInput, TxOutput, Address, ChainState
@@ -10,6 +11,12 @@ from rpc_client import BitokRPC
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+app.logger.setLevel(logging.INFO)
 
 config = Config()
 engine, SessionFactory = init_db(
@@ -43,9 +50,12 @@ def get_session():
 
 
 def format_coin(satoshis):
-    if satoshis is None:
-        return '0'
-    return f'{satoshis / COIN:.8f}'
+    if satoshis is None or satoshis == 0:
+        return '0.00000000'
+    try:
+        return f'{satoshis / COIN:.8f}'
+    except (TypeError, ValueError):
+        return '0.00000000'
 
 
 def format_timestamp(ts):
@@ -94,7 +104,10 @@ def get_network_stats():
             info = rpc.getinfo()
             difficulty = info.get('difficulty', 0)
             connections = info.get('connections', 0)
-            chain_height = info.get('blocks', synced)
+            try:
+                chain_height = rpc.getblocknumber()
+            except:
+                chain_height = info.get('blocks', synced)
         except:
             difficulty = 0
             connections = 0
@@ -135,22 +148,29 @@ def index():
 @app.route('/blocks')
 @app.route('/blocks/<int:page>')
 def blocks(page=1):
-    with get_session() as session:
-        per_page = config.ITEMS_PER_PAGE
-        total = session.query(func.count(Block.id)).scalar()
-        total_pages = (total + per_page - 1) // per_page
+    try:
+        with get_session() as session:
+            per_page = config.ITEMS_PER_PAGE
+            total = session.query(func.count(Block.id)).scalar() or 0
+            total_pages = max(1, (total + per_page - 1) // per_page)
 
-        blocks_list = session.query(Block).order_by(
-            desc(Block.height)
-        ).offset((page - 1) * per_page).limit(per_page).all()
+            if page < 1 or page > total_pages:
+                page = 1
 
-        return render_template('blocks.html',
-            blocks=blocks_list,
-            page=page,
-            total_pages=total_pages,
-            total=total,
-            config=config
-        )
+            blocks_list = session.query(Block).order_by(
+                desc(Block.height)
+            ).offset((page - 1) * per_page).limit(per_page).all()
+
+            return render_template('blocks.html',
+                blocks=blocks_list,
+                page=page,
+                total_pages=total_pages,
+                total=total,
+                config=config
+            )
+    except Exception as e:
+        app.logger.error(f'Error in blocks route: {e}')
+        return render_template('500.html'), 500
 
 
 @app.route('/block/<block_id>')
@@ -454,6 +474,7 @@ def not_found(e):
 
 @app.errorhandler(500)
 def server_error(e):
+    app.logger.error(f'500 error: {str(e)}', exc_info=True)
     return render_template('500.html', config=config), 500
 
 
