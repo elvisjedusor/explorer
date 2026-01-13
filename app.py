@@ -161,6 +161,13 @@ def blocks(page=1):
                 desc(Block.height)
             ).offset((page - 1) * per_page).limit(per_page).all()
 
+            app.logger.info(f'Blocks page {page}: Found {len(blocks_list)} blocks')
+
+            # Log first block for debugging
+            if blocks_list:
+                b = blocks_list[0]
+                app.logger.info(f'First block: height={b.height}, hash={b.hash}, tx_count={b.tx_count}, total_value={b.total_value}, timestamp={b.timestamp}')
+
             return render_template('blocks.html',
                 blocks=blocks_list,
                 page=page,
@@ -169,8 +176,8 @@ def blocks(page=1):
                 config=config
             )
     except Exception as e:
-        app.logger.error(f'Error in blocks route: {e}')
-        return render_template('500.html'), 500
+        app.logger.error(f'Error in blocks route: {e}', exc_info=True)
+        return render_template('500.html', config=config), 500
 
 
 @app.route('/block/<block_id>')
