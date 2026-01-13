@@ -14,7 +14,7 @@
     <div class="download-sections">
         <div class="os-section">
             <div class="os-header">
-                <img src="/static/windows-logo.svg" alt="Windows" class="os-icon">
+                <img src="{{ url_for('static', filename='windows-logo.svg') }}" alt="Windows" class="os-icon">
                 <h3>Windows (64-bit)</h3>
             </div>
             <table class="download-table">
@@ -27,7 +27,7 @@
 
         <div class="os-section">
             <div class="os-header">
-                <img src="/static/linux-logo.svg" alt="Linux" class="os-icon">
+                <img src="{{ url_for('static', filename='linux-logo.svg') }}" alt="Linux" class="os-icon">
                 <h3>Linux</h3>
             </div>
             <table class="download-table">
@@ -44,7 +44,7 @@
 
         <div class="os-section">
             <div class="os-header">
-                <img src="/static/apple-logo.svg" alt="macOS" class="os-icon">
+                <img src="{{ url_for('static', filename='apple-logo.svg') }}" alt="macOS" class="os-icon">
                 <h3>macOS (Apple Silicon)</h3>
             </div>
             <table class="download-table">
@@ -61,7 +61,7 @@
 
         <div class="os-section">
             <div class="os-header">
-                <img src="/static/apple-logo.svg" alt="macOS" class="os-icon">
+                <img src="{{ url_for('static', filename='apple-logo.svg') }}" alt="macOS" class="os-icon">
                 <h3>macOS (Intel-based)</h3>
             </div>
             <table class="download-table">
