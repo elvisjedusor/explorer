@@ -198,6 +198,11 @@ def blocks(page=1):
         return render_template('500.html', config=config), 500
 
 
+@app.route('/download')
+def download():
+    return render_template('download.html', config=config)
+
+
 @app.route('/block/<block_id>')
 def block(block_id):
     with get_session() as session:

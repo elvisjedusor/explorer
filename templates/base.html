@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ config.COIN_NAME }} Explorer{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
     <style>
         * {
             margin: 0;
@@ -11,216 +13,235 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            background: #e8e8e8;
+            color: #333;
             min-height: 100vh;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         a {
-            color: #4a9eff;
+            color: #0066cc;
             text-decoration: none;
         }
         a:hover {
             text-decoration: underline;
+            color: #003399;
         }
         .container {
-            max-width: 1400px;
+            max-width: 960px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 10px;
         }
         header {
-            background: #111;
-            border-bottom: 1px solid #222;
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ccc;
+            padding: 10px 0;
         }
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
         }
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .logo img {
+            width: 32px;
+            height: 32px;
         }
         .logo span {
-            color: #4a9eff;
+            color: #c59000;
         }
         nav {
             display: flex;
-            gap: 25px;
+            gap: 5px;
         }
         nav a {
-            color: #888;
-            font-weight: 500;
-            transition: color 0.2s;
+            color: #333;
+            padding: 5px 12px;
+            background: #ddd;
+            border: 1px solid #aaa;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 11px;
         }
         nav a:hover {
-            color: #fff;
+            background: #ccc;
             text-decoration: none;
         }
         .search-form {
             display: flex;
-            gap: 8px;
+            gap: 5px;
         }
         .search-input {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #fff;
-            width: 300px;
-            font-size: 14px;
+            background: #fff;
+            border: 1px solid #999;
+            padding: 5px 8px;
+            color: #333;
+            width: 280px;
+            font-size: 11px;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
         }
         .search-input:focus {
             outline: none;
-            border-color: #4a9eff;
+            border-color: #666;
         }
         .search-btn {
-            background: #4a9eff;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            color: #fff;
-            font-weight: 500;
+            background: linear-gradient(to bottom, #f5f5f5, #ddd);
+            border: 1px solid #999;
+            padding: 5px 12px;
+            color: #333;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            font-size: 11px;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
         }
         .search-btn:hover {
-            background: #3a8eef;
+            background: linear-gradient(to bottom, #eee, #ccc);
         }
         main {
-            padding: 30px 0;
-            min-height: calc(100vh - 180px);
+            padding: 15px 0;
+            min-height: calc(100vh - 140px);
         }
         footer {
-            background: #111;
-            border-top: 1px solid #222;
-            padding: 20px 0;
+            background: #f5f5f5;
+            border-top: 2px solid #ccc;
+            padding: 10px 0;
             text-align: center;
             color: #666;
-            font-size: 14px;
+            font-size: 11px;
         }
         .card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 15px;
         }
         .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
         }
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 11px;
         }
         th, td {
-            padding: 12px;
+            padding: 6px 8px;
             text-align: left;
-            border-bottom: 1px solid #222;
+            border: 1px solid #ddd;
         }
         th {
-            color: #888;
-            font-weight: 500;
-            font-size: 13px;
-            text-transform: uppercase;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #fafafa;
         }
         tr:hover {
-            background: #1a1a1a;
+            background: #ffffcc;
         }
         .hash {
-            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            font-size: 13px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
             word-break: break-all;
         }
         .truncate {
-            max-width: 200px;
+            max-width: 180px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .badge {
             display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
         }
         .badge-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
+            background: #cfc;
+            color: #060;
+            border: 1px solid #090;
         }
         .badge-info {
-            background: rgba(74, 158, 255, 0.2);
-            color: #4a9eff;
+            background: #cdf;
+            color: #036;
+            border: 1px solid #369;
         }
         .badge-warning {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
+            background: #ffc;
+            color: #960;
+            border: 1px solid #c90;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
         }
         .stat-card {
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            padding: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
         }
         .stat-label {
-            color: #888;
-            font-size: 13px;
-            margin-bottom: 5px;
+            color: #666;
+            font-size: 10px;
+            margin-bottom: 3px;
+            text-transform: uppercase;
         }
         .stat-value {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
         }
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
+            gap: 3px;
+            margin-top: 10px;
         }
         .pagination a, .pagination span {
-            padding: 8px 14px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #888;
+            padding: 4px 10px;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            color: #333;
+            font-size: 11px;
         }
         .pagination a:hover {
-            background: #222;
-            color: #fff;
+            background: #e0e0e0;
             text-decoration: none;
         }
         .pagination .active {
-            background: #4a9eff;
-            border-color: #4a9eff;
+            background: #c59000;
+            border-color: #a07800;
             color: #fff;
+            font-weight: bold;
         }
         .detail-row {
             display: flex;
-            padding: 12px 0;
-            border-bottom: 1px solid #222;
+            padding: 6px 0;
+            border-bottom: 1px solid #ddd;
+            font-size: 11px;
         }
         .detail-label {
-            width: 200px;
-            color: #888;
+            width: 150px;
+            color: #666;
+            font-weight: bold;
             flex-shrink: 0;
         }
         .detail-value {
@@ -228,34 +249,36 @@
             word-break: break-all;
         }
         .amount-positive {
-            color: #10b981;
+            color: #060;
+            font-weight: bold;
         }
         .amount-negative {
-            color: #ef4444;
+            color: #c00;
+            font-weight: bold;
         }
         .io-section {
             display: grid;
-            grid-template-columns: 1fr 50px 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 40px 1fr;
+            gap: 10px;
             align-items: start;
         }
         .io-arrow {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            color: #444;
-            padding-top: 40px;
+            font-size: 18px;
+            color: #999;
+            padding-top: 30px;
         }
         .io-list {
             list-style: none;
         }
         .io-item {
-            background: #1a1a1a;
-            border: 1px solid #222;
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
         }
         @media (max-width: 768px) {
             .header-content {
@@ -267,6 +290,7 @@
             }
             nav {
                 justify-content: center;
+                flex-wrap: wrap;
             }
             .io-section {
                 grid-template-columns: 1fr;
@@ -276,7 +300,10 @@
                 padding: 10px 0;
             }
             .truncate {
-                max-width: 150px;
+                max-width: 120px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -284,10 +311,14 @@
 <body>
     <header>
         <div class="container header-content">
-            <a href="/" class="logo">{{ config.COIN_NAME }} <span>Explorer</span></a>
+            <a href="/" class="logo">
+                <img src="/static/favicon.ico" alt="Bitok">
+                {{ config.COIN_NAME }} <span>Explorer</span>
+            </a>
             <nav>
                 <a href="/">Home</a>
                 <a href="/blocks">Blocks</a>
+                <a href="/download">Download</a>
             </nav>
             <form action="/search" method="get" class="search-form">
                 <input type="text" name="q" class="search-input" placeholder="Search block, tx, or address...">
@@ -304,7 +335,7 @@
 
     <footer>
         <div class="container">
-            {{ config.COIN_NAME }} Blockchain Explorer | Powered by Bitok-Abe
+            {{ config.COIN_NAME }} Blockchain Explorer | Powered by Bitok
         </div>
     </footer>
 </body>
