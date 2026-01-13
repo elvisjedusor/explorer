@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Blocks - {{ config.COIN_NAME }} Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">All Blocks ({{ "{:,}".format(total) }} total)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Height</th>
+                <th>Hash</th>
+                <th>Transactions</th>
+                <th>Total Value</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for block in blocks %}
+            <tr>
+                <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
+                <td class="hash truncate"><a href="/block/{{ block.hash }}">{{ block.hash[:20] }}...</a></td>
+                <td>{{ block.tx_count }}</td>
+                <td>{{ block.total_value | coin }} {{ config.COIN_SYMBOL }}</td>
+                <td>{{ block.timestamp | timestamp }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #666;">No blocks found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/blocks/1">First</a>
+        <a href="/blocks/{{ page - 1 }}">Prev</a>
+        {% endif %}
+
+        {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
+        {% if p == page %}
+        <span class="active">{{ p }}</span>
+        {% else %}
+        <a href="/blocks/{{ p }}">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="/blocks/{{ page + 1 }}">Next</a>
+        <a href="/blocks/{{ total_pages }}">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

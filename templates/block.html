@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Block {{ block.height }} - {{ config.COIN_NAME }} Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 class="card-title" style="margin-bottom: 0;">Block {{ block.height }}</h2>
+        <div style="display: flex; gap: 10px;">
+            {% if prev_block %}
+            <a href="/block/{{ prev_block.height }}" class="search-btn" style="background: #333;">&larr; Previous</a>
+            {% endif %}
+            {% if next_block %}
+            <a href="/block/{{ next_block.height }}" class="search-btn" style="background: #333;">Next &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="detail-row">
+        <div class="detail-label">Hash</div>
+        <div class="detail-value hash">{{ block.hash }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Height</div>
+        <div class="detail-value">{{ block.height }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Timestamp</div>
+        <div class="detail-value">{{ block.timestamp | timestamp }} ({{ block.timestamp | age }})</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Transactions</div>
+        <div class="detail-value">{{ block.tx_count }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Total Value</div>
+        <div class="detail-value">{{ block.total_value | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Version</div>
+        <div class="detail-value">{{ block.version }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Merkle Root</div>
+        <div class="detail-value hash">{{ block.merkle_root }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Previous Block</div>
+        <div class="detail-value hash">
+            {% if prev_block %}
+            <a href="/block/{{ block.prev_hash }}">{{ block.prev_hash }}</a>
+            {% else %}
+            {{ block.prev_hash }}
+            {% endif %}
+        </div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Bits</div>
+        <div class="detail-value">{{ block.bits }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Nonce</div>
+        <div class="detail-value">{{ block.nonce }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 class="card-title">Transactions ({{ transactions | length }})</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>TxID</th>
+                <th>Type</th>
+                <th>Total Output</th>
+                <th>Fee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transactions %}
+            <tr>
+                <td class="hash truncate"><a href="/tx/{{ tx.txid }}">{{ tx.txid[:20] }}...</a></td>
+                <td>
+                    {% if tx.is_coinbase %}
+                    <span class="badge badge-success">Coinbase</span>
+                    {% else %}
+                    <span class="badge badge-info">Transfer</span>
+                    {% endif %}
+                </td>
+                <td>{{ tx.total_output | coin }} {{ config.COIN_SYMBOL }}</td>
+                <td>{{ tx.fee | coin }} {{ config.COIN_SYMBOL }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #666;">No transactions in this block.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

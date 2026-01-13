@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Not Found - {{ config.COIN_NAME }} Explorer{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 80px; color: #333; margin-bottom: 20px;">404</div>
+    <h2 style="color: #fff; margin-bottom: 15px;">Page Not Found</h2>
+    <p style="color: #888; margin-bottom: 30px;">The block, transaction, or address you're looking for doesn't exist.</p>
+    <a href="/" class="search-btn">Go Home</a>
+</div>
+{% endblock %}

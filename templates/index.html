@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.COIN_NAME }} Blockchain Explorer{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Block Height</div>
+        <div class="stat-value">{{ stats.height | default(0) | int }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Difficulty</div>
+        <div class="stat-value">{{ "%.4f" | format(stats.difficulty | default(0)) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Transactions</div>
+        <div class="stat-value">{{ "{:,}".format(stats.total_txs | default(0)) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Addresses</div>
+        <div class="stat-value">{{ "{:,}".format(stats.total_addresses | default(0)) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Network Connections</div>
+        <div class="stat-value">{{ stats.connections | default(0) }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Sync Status</div>
+        <div class="stat-value">
+            {% if stats.height == stats.chain_height %}
+            <span class="badge badge-success">Synced</span>
+            {% else %}
+            <span class="badge badge-warning">{{ stats.height }}/{{ stats.chain_height }}</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card">
+        <h2 class="card-title">Recent Blocks</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Height</th>
+                    <th>Hash</th>
+                    <th>Txs</th>
+                    <th>Age</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for block in recent_blocks %}
+                <tr>
+                    <td><a href="/block/{{ block.height }}">{{ block.height }}</a></td>
+                    <td class="hash truncate"><a href="/block/{{ block.hash }}">{{ block.hash[:16] }}...</a></td>
+                    <td>{{ block.tx_count }}</td>
+                    <td>{{ block.timestamp | age }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #666;">No blocks yet. Start the sync process.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top: 15px; text-align: center;">
+            <a href="/blocks">View all blocks</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2 class="card-title">Recent Transactions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>TxID</th>
+                    <th>Block</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_txs %}
+                <tr>
+                    <td class="hash truncate"><a href="/tx/{{ tx.txid }}">{{ tx.txid[:16] }}...</a></td>
+                    <td><a href="/block/{{ tx.block_height }}">{{ tx.block_height }}</a></td>
+                    <td>{{ tx.total_output | coin }} {{ config.COIN_SYMBOL }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #666;">No transactions yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+@media (max-width: 900px) {
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

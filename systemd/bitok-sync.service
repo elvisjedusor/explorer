@@ -1,0 +1,17 @@
+[Unit]
+Description=Bitok Blockchain Sync Service
+After=network.target bitokd.service
+
+[Service]
+Type=simple
+User=bitok
+Group=bitok
+WorkingDirectory=/opt/bitok-explorer
+Environment="PATH=/opt/bitok-explorer/venv/bin"
+EnvironmentFile=/opt/bitok-explorer/.env
+ExecStart=/opt/bitok-explorer/venv/bin/python sync.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

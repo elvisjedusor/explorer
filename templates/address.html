@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Address {{ address.address[:16] }}... - {{ config.COIN_NAME }} Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">Address Details</h2>
+
+    <div class="detail-row">
+        <div class="detail-label">Address</div>
+        <div class="detail-value hash">{{ address.address }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Balance</div>
+        <div class="detail-value" style="font-size: 1.3rem; font-weight: 600;">
+            {{ address.balance | coin }} {{ config.COIN_SYMBOL }}
+        </div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Total Received</div>
+        <div class="detail-value amount-positive">{{ address.total_received | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Total Sent</div>
+        <div class="detail-value amount-negative">{{ address.total_sent | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Transactions</div>
+        <div class="detail-value">{{ address.tx_count }}</div>
+    </div>
+    {% if address.first_seen_block %}
+    <div class="detail-row">
+        <div class="detail-label">First Seen</div>
+        <div class="detail-value">Block <a href="/block/{{ address.first_seen_block }}">{{ address.first_seen_block }}</a></div>
+    </div>
+    {% endif %}
+    {% if address.last_seen_block %}
+    <div class="detail-row">
+        <div class="detail-label">Last Seen</div>
+        <div class="detail-value">Block <a href="/block/{{ address.last_seen_block }}">{{ address.last_seen_block }}</a></div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2 class="card-title">Transaction History ({{ total }} total)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>TxID</th>
+                <th>Block</th>
+                <th>Received</th>
+                <th>Sent</th>
+                <th>Net</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in transactions %}
+            <tr>
+                <td class="hash truncate"><a href="/tx/{{ item.tx.txid }}">{{ item.tx.txid[:20] }}...</a></td>
+                <td><a href="/block/{{ item.tx.block_height }}">{{ item.tx.block_height }}</a></td>
+                <td class="amount-positive">{% if item.received > 0 %}+{{ item.received | coin }}{% endif %}</td>
+                <td class="amount-negative">{% if item.sent > 0 %}-{{ item.sent | coin }}{% endif %}</td>
+                <td {% if item.net >= 0 %}class="amount-positive"{% else %}class="amount-negative"{% endif %}>
+                    {% if item.net >= 0 %}+{% endif %}{{ item.net | coin }} {{ config.COIN_SYMBOL }}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #666;">No transactions for this address.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="/address/{{ address.address }}/1">First</a>
+        <a href="/address/{{ address.address }}/{{ page - 1 }}">Prev</a>
+        {% endif %}
+
+        {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
+        {% if p == page %}
+        <span class="active">{{ p }}</span>
+        {% else %}
+        <a href="/address/{{ address.address }}/{{ p }}">{{ p }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="/address/{{ address.address }}/{{ page + 1 }}">Next</a>
+        <a href="/address/{{ address.address }}/{{ total_pages }}">Last</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

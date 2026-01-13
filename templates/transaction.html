@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction {{ tx.txid[:16] }}... - {{ config.COIN_NAME }} Explorer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 class="card-title">Transaction Details</h2>
+
+    <div class="detail-row">
+        <div class="detail-label">TxID</div>
+        <div class="detail-value hash">{{ tx.txid }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Block</div>
+        <div class="detail-value">
+            <a href="/block/{{ tx.block_height }}">{{ tx.block_height }}</a>
+            (<a href="/block/{{ tx.block_hash }}" class="hash">{{ tx.block_hash[:20] }}...</a>)
+        </div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Type</div>
+        <div class="detail-value">
+            {% if tx.is_coinbase %}
+            <span class="badge badge-success">Coinbase (Block Reward)</span>
+            {% else %}
+            <span class="badge badge-info">Transfer</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Total Input</div>
+        <div class="detail-value">{{ tx.total_input | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    <div class="detail-row">
+        <div class="detail-label">Total Output</div>
+        <div class="detail-value">{{ tx.total_output | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    {% if not tx.is_coinbase %}
+    <div class="detail-row">
+        <div class="detail-label">Fee</div>
+        <div class="detail-value">{{ tx.fee | coin }} {{ config.COIN_SYMBOL }}</div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2 class="card-title">Inputs & Outputs</h2>
+
+    <div class="io-section">
+        <div>
+            <h3 style="color: #888; font-size: 14px; margin-bottom: 15px;">INPUTS ({{ inputs | length }})</h3>
+            <ul class="io-list">
+                {% for inp in inputs %}
+                <li class="io-item">
+                    {% if inp.coinbase %}
+                    <div style="color: #10b981;">Coinbase (Block Reward)</div>
+                    <div class="hash" style="font-size: 12px; color: #666; margin-top: 5px;">{{ inp.coinbase[:60] }}{% if inp.coinbase|length > 60 %}...{% endif %}</div>
+                    {% else %}
+                    <div>
+                        {% if inp.address %}
+                        <a href="/address/{{ inp.address }}">{{ inp.address }}</a>
+                        {% else %}
+                        <span style="color: #666;">Unknown</span>
+                        {% endif %}
+                    </div>
+                    <div style="margin-top: 5px;">
+                        <span style="color: #888;">Value:</span>
+                        <span class="amount-negative">{{ inp.value | coin }} {{ config.COIN_SYMBOL }}</span>
+                    </div>
+                    <div class="hash" style="font-size: 11px; color: #666; margin-top: 5px;">
+                        From: <a href="/tx/{{ inp.prev_txid }}">{{ inp.prev_txid[:30] }}...</a> [{{ inp.prev_vout }}]
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="io-arrow">&rarr;</div>
+
+        <div>
+            <h3 style="color: #888; font-size: 14px; margin-bottom: 15px;">OUTPUTS ({{ outputs | length }})</h3>
+            <ul class="io-list">
+                {% for out in outputs %}
+                <li class="io-item">
+                    <div>
+                        {% if out.address %}
+                        <a href="/address/{{ out.address }}">{{ out.address }}</a>
+                        {% else %}
+                        <span style="color: #666;">Unknown Script</span>
+                        {% endif %}
+                    </div>
+                    <div style="margin-top: 5px;">
+                        <span style="color: #888;">Value:</span>
+                        <span class="amount-positive">{{ out.value | coin }} {{ config.COIN_SYMBOL }}</span>
+                    </div>
+                    <div style="margin-top: 5px;">
+                        {% if out.spent %}
+                        <span class="badge badge-warning">Spent</span>
+                        {% else %}
+                        <span class="badge badge-success">Unspent</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
