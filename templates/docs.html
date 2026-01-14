@@ -1369,8 +1369,38 @@ html, body {
         gap: 10px;
     }
 
+    .tab-link {
+        font-size: 14px;
+        padding: 10px 12px;
+        text-align: center;
+    }
+
     .grid-2, .code-compare, .feature-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .docs-nav {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tab-link {
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    .docs-main {
+        padding: 25px;
+    }
+
+    .platform-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .lead {
+        font-size: 16px;
     }
 }
 
@@ -1379,8 +1409,27 @@ html, body {
         padding: 20px;
     }
 
+    .docs-sidebar {
+        padding: 15px;
+        overflow-x: auto;
+    }
+
     .docs-nav {
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 8px;
+        padding-bottom: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-link {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 10px 15px;
+        font-size: 14px;
+        min-width: fit-content;
     }
 
     .platform-selector {
@@ -1398,6 +1447,48 @@ html, body {
     .code-block {
         font-size: 12px;
         padding: 15px;
+    }
+
+    .specs-table {
+        font-size: 13px;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .specs-table th,
+    .specs-table td {
+        padding: 8px;
+        white-space: nowrap;
+    }
+
+    .rpc-info {
+        overflow-x: auto;
+    }
+
+    .quote-box,
+    .info-box,
+    .callout-info,
+    .callout-success,
+    .callout-warning {
+        padding: 15px;
+        font-size: 14px;
+    }
+
+    .rpc-command {
+        padding: 15px;
+    }
+
+    .rpc-command h4 {
+        font-size: 14px;
+    }
+
+    .final-quote {
+        padding: 25px;
+    }
+
+    .final-quote h2 {
+        font-size: 24px;
     }
 }
 </style>
