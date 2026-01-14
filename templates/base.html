@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ config.COIN_NAME }} Explorer{% endblock %}</title>
+    <title>{% block title %}{{ config.COIN_NAME }} Coin{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
@@ -525,7 +525,7 @@
         <div class="container header-content">
             <a href="/" class="logo">
                 <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Bitok">
-                {{ config.COIN_NAME }} <span>Explorer</span>
+                {{ config.COIN_NAME }} <span>Coin</span>
             </a>
             <nav>
                 <a href="/">Home</a>
@@ -548,7 +548,7 @@
 
     <footer>
         <div class="container">
-            {{ config.COIN_NAME }} Blockchain Explorer | Powered by Bitok
+            Powered by Tomas Elvis Jedusor © 2026
         </div>
     </footer>
 </body>
