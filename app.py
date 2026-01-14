@@ -264,9 +264,9 @@ def download():
     return render_template('download.html', config=config)
 
 
-@app.route('/about')
-def about():
-    return render_template('about.html', config=config)
+@app.route('/docs')
+def docs():
+    return render_template('docs.html', config=config)
 
 
 @app.route('/block/<block_id>')

@@ -47,6 +47,21 @@
     </div>
 </div>
 
+<div class="intro-section">
+    <div class="intro-content">
+        <p class="intro-lead">What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase? No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+
+        <p class="intro-text">Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement. Everything after that is history. Not destiny.</p>
+
+        <p class="intro-text">I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and <strong>resist GPU mining</strong>.</p>
+
+        <div class="intro-cta">
+            <a href="/docs" class="intro-btn">Learn More</a>
+            <a href="/download" class="intro-btn intro-btn-secondary">Download</a>
+        </div>
+    </div>
+</div>
+
 <div class="home-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
     <div class="card">
         <h2 class="card-title">Recent Blocks</h2>
@@ -167,4 +182,138 @@ function updateHomePage() {
 
 setInterval(updateHomePage, 10000);
 </script>
+
+<style>
+.intro-section {
+    background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
+    border: 2px solid #c59000;
+    border-radius: 4px;
+    padding: 35px 40px;
+    margin: 30px 0;
+    box-shadow: 0 2px 8px rgba(197, 144, 0, 0.1);
+}
+
+.intro-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.intro-lead {
+    font-size: 19px;
+    line-height: 1.7;
+    color: #222;
+    margin: 0 0 20px 0;
+    font-weight: 600;
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.intro-text {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #444;
+    margin: 0 0 15px 0;
+    text-align: justify;
+}
+
+.intro-text strong {
+    color: #c59000;
+    font-weight: bold;
+}
+
+.intro-cta {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.intro-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    background: linear-gradient(to bottom, #d4a000, #c59000);
+    color: #fff;
+    text-decoration: none;
+    border: 1px solid #a07800;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 15px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.intro-btn:hover {
+    background: linear-gradient(to bottom, #c59000, #b58900);
+    text-decoration: none;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.intro-btn-secondary {
+    background: linear-gradient(to bottom, #f5f5f5, #e8e8e8);
+    color: #333;
+    border-color: #999;
+}
+
+.intro-btn-secondary:hover {
+    background: linear-gradient(to bottom, #e8e8e8, #ddd);
+    color: #333;
+}
+
+@media (max-width: 900px) {
+    .intro-section {
+        padding: 25px 20px;
+        margin: 20px 0;
+    }
+
+    .intro-lead {
+        font-size: 17px;
+        text-align: left;
+        padding-bottom: 15px;
+    }
+
+    .intro-text {
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .intro-cta {
+        flex-direction: column;
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+
+    .intro-btn {
+        width: 100%;
+        text-align: center;
+        padding: 14px 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .intro-section {
+        padding: 20px 15px;
+        border-width: 1px;
+    }
+
+    .intro-lead {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .intro-text {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .intro-btn {
+        font-size: 14px;
+        padding: 12px 20px;
+    }
+}
+</style>
 {% endblock %}

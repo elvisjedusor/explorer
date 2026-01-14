@@ -1,0 +1,896 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation - {{ config.COIN_NAME }}{% endblock %}
+
+{% block content %}
+<div class="docs-container">
+    <aside class="docs-sidebar">
+        <h3>Documentation</h3>
+        <nav class="docs-nav">
+            <a href="#what-is">What is Bitok</a>
+            <a href="#specs">Specifications</a>
+            <a href="#mining">Mining</a>
+            <a href="#btokpow">BtokPOW (Yespower)</a>
+            <a href="#manifesto">Manifesto</a>
+            <a href="#building">Building from Source</a>
+            <a href="#rpc-api">RPC API</a>
+            <a href="#integrations">Integrations</a>
+            <a href="#security">Security</a>
+        </nav>
+    </aside>
+
+    <main class="docs-content">
+        <h1 class="docs-title">Bitok Documentation</h1>
+        <p class="docs-subtitle">Bitcoin v0.3.19 with CPU-optimized proof-of-work</p>
+
+        <section id="what-is" class="docs-section">
+            <h2>What is Bitok</h2>
+            <p>Bitok is Bitcoin v0.3.19 (Satoshi Nakamoto's final release from December 2010) adapted to run on modern systems with GPU-resistant proof-of-work.</p>
+
+            <p>This is the last version of Bitcoin that Satoshi worked on, running as its own network with one critical change: a mining algorithm that keeps CPU mining viable.</p>
+
+            <h3>Key Changes from Original Bitcoin</h3>
+            <ol>
+                <li><strong>Modern System Compatibility:</strong> Updated build system for OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2</li>
+                <li><strong>Yespower Proof-of-Work:</strong> Replaced SHA-256 with Yespower 1.0 for CPU-friendly, GPU/ASIC-resistant mining</li>
+                <li><strong>New Genesis Block:</strong> Separate network with fresh blockchain</li>
+            </ol>
+
+            <p>Everything else is identical to Bitcoin v0.3.19: same transaction format, script system, networking code, wallet behavior, 21M cap, halving schedule. All security fixes from the Satoshi era are included from launch.</p>
+
+            <div class="callout">
+                <strong>Why Satoshi v0.3.19?</strong>
+                <p>This version includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design philosophy before later protocol changes.</p>
+            </div>
+        </section>
+
+        <section id="specs" class="docs-section">
+            <h2>Technical Specifications</h2>
+            <table class="specs-table">
+                <tr>
+                    <td><strong>Algorithm</strong></td>
+                    <td>Yespower 1.0 (N=2048, r=32, personalization="BitokPoW")</td>
+                </tr>
+                <tr>
+                    <td><strong>Block Time</strong></td>
+                    <td>10 minutes (600 seconds)</td>
+                </tr>
+                <tr>
+                    <td><strong>Block Reward</strong></td>
+                    <td>50 BITOK, halving every 210,000 blocks</td>
+                </tr>
+                <tr>
+                    <td><strong>Max Supply</strong></td>
+                    <td>21,000,000 BITOK</td>
+                </tr>
+                <tr>
+                    <td><strong>Difficulty Adjustment</strong></td>
+                    <td>Every 2016 blocks (~2 weeks)</td>
+                </tr>
+                <tr>
+                    <td><strong>Coinbase Maturity</strong></td>
+                    <td>100 blocks</td>
+                </tr>
+                <tr>
+                    <td><strong>P2P Port</strong></td>
+                    <td>18333</td>
+                </tr>
+                <tr>
+                    <td><strong>RPC Port</strong></td>
+                    <td>8332</td>
+                </tr>
+            </table>
+
+            <h3>Genesis Block</h3>
+            <pre class="code-block">Hash:      0x0290400ea28d3fe79d102ca6b7cd11cee5eba9f17f2046c303d92f65d6ed2617
+Message:   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
+nBits:     0x1effffff
+nNonce:    37137</pre>
+        </section>
+
+        <section id="mining" class="docs-section">
+            <h2>Mining</h2>
+            <p>Bitok uses Yespower proof-of-work, designed to keep mining accessible to regular users with regular computers.</p>
+
+            <h3>Start Mining</h3>
+            <pre class="code-block"># Daemon (all cores)
+./bitokd -gen
+
+# Daemon (limit cores)
+./bitokd -gen -genproclimit=4
+
+# GUI
+Settings → Options → Generate Coins</pre>
+
+            <h3>Mining Commands (RPC)</h3>
+            <pre class="code-block"># Enable mining with 4 threads
+./bitokd setgenerate true 4
+
+# Check mining status
+./bitokd getgenerate
+
+# Get network difficulty
+./bitokd getdifficulty</pre>
+
+            <h3>CPU Performance</h3>
+            <table class="specs-table">
+                <tr>
+                    <th>CPU Feature</th>
+                    <th>Hashrate per Core</th>
+                </tr>
+                <tr>
+                    <td>SSE2 only</td>
+                    <td>~1.0 kH/s</td>
+                </tr>
+                <tr>
+                    <td>AVX</td>
+                    <td>~2.0 kH/s</td>
+                </tr>
+                <tr>
+                    <td>AVX2</td>
+                    <td>~3.5 kH/s</td>
+                </tr>
+                <tr>
+                    <td>AVX512</td>
+                    <td>~5.0 kH/s</td>
+                </tr>
+            </table>
+
+            <p><strong>Example Hardware:</strong></p>
+            <ul>
+                <li>Intel i5-1135G7 (laptop, 4 cores): ~12 kH/s total</li>
+                <li>AMD Ryzen 5 5600X (desktop, 6 cores): ~21 kH/s total</li>
+                <li>Intel Xeon Gold 6248R (server, 48 cores): ~168 kH/s total</li>
+            </ul>
+
+            <div class="callout callout-success">
+                <strong>GPU Resistance:</strong>
+                <p>With SHA-256, GPUs are 300x faster than CPUs. With Yespower, GPUs are only 5-6x faster and consume far more power, making them uneconomical for mining.</p>
+            </div>
+        </section>
+
+        <section id="btokpow" class="docs-section">
+            <h2>BtokPOW - Yespower Algorithm</h2>
+            <p>Yespower is a CPU-optimized, memory-hard hashing algorithm designed to resist GPU and ASIC acceleration while remaining efficient on consumer CPUs.</p>
+
+            <h3>Why Yespower?</h3>
+            <p>On December 12, 2010, Satoshi Nakamoto wrote:</p>
+            <blockquote>
+                "We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network. It's nice how anyone with just a CPU can compete fairly equally right now."
+            </blockquote>
+            <p>Bitcoin failed this requirement. SHA-256 was quickly dominated by GPUs, then ASICs, then industrial mining farms. Bitok enforces this requirement with Yespower.</p>
+
+            <h3>Design Goals</h3>
+            <table class="specs-table">
+                <tr>
+                    <th>Goal</th>
+                    <th>SHA-256</th>
+                    <th>Yespower</th>
+                </tr>
+                <tr>
+                    <td>CPU-friendly</td>
+                    <td>No</td>
+                    <td><strong>Yes</strong></td>
+                </tr>
+                <tr>
+                    <td>GPU-resistant</td>
+                    <td>No</td>
+                    <td><strong>Yes</strong></td>
+                </tr>
+                <tr>
+                    <td>ASIC-resistant</td>
+                    <td>No</td>
+                    <td><strong>Yes</strong></td>
+                </tr>
+                <tr>
+                    <td>Laptop mining viable</td>
+                    <td>No</td>
+                    <td><strong>Yes</strong></td>
+                </tr>
+                <tr>
+                    <td>Memory-hard</td>
+                    <td>No</td>
+                    <td><strong>Yes (~128KB/hash)</strong></td>
+                </tr>
+            </table>
+
+            <h3>Parameters</h3>
+            <pre class="code-block">yespower_params_t {
+    .version = YESPOWER_1_0,
+    .N = 2048,              // Memory cost parameter (~128KB)
+    .r = 32,                // Block size parameter
+    .pers = "BitokPoW",     // Personalization string
+    .perslen = 8
+}</pre>
+
+            <h3>Key Features</h3>
+            <ul>
+                <li><strong>Sequential Memory Initialization:</strong> Must fill 128KB before starting, cannot be parallelized</li>
+                <li><strong>Random Memory Access:</strong> Pseudo-random reads create memory latency bottleneck</li>
+                <li><strong>SIMD Optimizations:</strong> Automatically uses SSE2/AVX/AVX2/AVX512 (CPU advantage)</li>
+                <li><strong>Domain Separation:</strong> "BitokPoW" personalization prevents cross-chain hash reuse</li>
+            </ul>
+
+            <h3>Why GPUs Can't Win</h3>
+            <ul>
+                <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns</li>
+                <li><strong>SIMD Instructions:</strong> x86 CPUs have AVX2/AVX512 which Yespower exploits; GPUs have different SIMD that doesn't map efficiently</li>
+                <li><strong>Power Efficiency:</strong> CPU uses 50-100W for reasonable hashrate; GPU uses 250-350W for only 5-6x improvement</li>
+            </ul>
+        </section>
+
+        <section id="manifesto" class="docs-section">
+            <h2>Manifesto</h2>
+
+            <blockquote class="manifesto-quote">
+                I took Bitcoin v0.3.19, changed the mining algorithm so GPUs can't dominate, gave it a new genesis block, and ran it. That's the manifesto.
+            </blockquote>
+
+            <h3>What Happened to Bitcoin</h3>
+            <p>Bitcoin worked in 2010. You downloaded the software, clicked "Generate Coins," and your laptop found blocks. The network grew because participation was free and easy.</p>
+
+            <p>Then GPUs happened. Then mining pools. Then FPGAs, ASICs. The barrier to entry went from "own a computer" to "have access to cheap electricity and specialized hardware."</p>
+
+            <h3>What Satoshi Said</h3>
+            <p>December 12, 2010:</p>
+            <blockquote>
+                "We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network."
+            </blockquote>
+            <p>To Laszlo Hanyecz (the pizza guy):</p>
+            <blockquote>
+                "GPUs are much less evenly distributed, so the generated coins only go towards rewarding 20% of the people for joining the network instead of 100%."
+            </blockquote>
+            <p>And:</p>
+            <blockquote>
+                "It's inevitable that GPU compute clusters will eventually hog all the generated coins, but I don't want to hasten that day."
+            </blockquote>
+
+            <h3>What Bitok Changes</h3>
+            <ol>
+                <li><strong>Yespower instead of SHA-256:</strong> GPU miners don't get 1000x advantage anymore. More like 2x, if that.</li>
+                <li><strong>New genesis block:</strong> Separate network. No confusion with BTC. Clean slate.</li>
+                <li><strong>Modern build system:</strong> Compiles on Ubuntu 24.04, macOS, Windows.</li>
+            </ol>
+
+            <h3>What Bitok Does NOT Change</h3>
+            <ul>
+                <li>No new opcodes</li>
+                <li>No SegWit</li>
+                <li>No block size increase</li>
+                <li>No layer 2</li>
+                <li>No BIPs</li>
+                <li>No governance</li>
+                <li>No foundation</li>
+                <li>No roadmap</li>
+            </ul>
+            <p>The protocol is frozen at December 2010.</p>
+
+            <div class="callout">
+                <strong>No Promises</strong>
+                <p>This isn't going to change the world. It's not going to make you rich. It's software that does what it says. Run it or don't.</p>
+            </div>
+        </section>
+
+        <section id="building" class="docs-section">
+            <h2>Building from Source</h2>
+
+            <h3>Ubuntu / Debian</h3>
+            <pre class="code-block"># Install dependencies
+sudo apt-get install build-essential libssl-dev libdb5.3-dev libboost-all-dev
+
+# Build daemon
+make -f makefile.unix
+
+# Build GUI (optional)
+sudo apt-get install libwxgtk3.2-dev libgtk-3-dev
+make -f makefile.unix gui</pre>
+
+            <h3>macOS</h3>
+            <pre class="code-block"># Install dependencies
+brew install boost berkeley-db@4 openssl@3 wxwidgets
+
+# Build
+make -f makefile.osx all</pre>
+
+            <h3>Windows (Cross-compile from Ubuntu)</h3>
+            <pre class="code-block"># Install MinGW
+sudo apt-get install mingw-w64 g++-mingw-w64-x86-64
+
+# Build
+make -f makefile.mingw gui</pre>
+
+            <h3>Data Directories</h3>
+            <table class="specs-table">
+                <tr>
+                    <th>OS</th>
+                    <th>Path</th>
+                </tr>
+                <tr>
+                    <td>Linux</td>
+                    <td><code>~/.bitok/</code></td>
+                </tr>
+                <tr>
+                    <td>macOS</td>
+                    <td><code>~/Library/Application Support/Bitok/</code></td>
+                </tr>
+                <tr>
+                    <td>Windows</td>
+                    <td><code>%APPDATA%\Bitok\</code></td>
+                </tr>
+            </table>
+
+            <div class="callout callout-warning">
+                <strong>Important:</strong> Back up <code>wallet.dat</code>. If you lose it, coins are gone. There's no recovery.
+            </div>
+        </section>
+
+        <section id="rpc-api" class="docs-section">
+            <h2>RPC API</h2>
+            <p>Bitok exposes a JSON-RPC 1.0 interface for programmatic access. This is essential for exchanges, mining pools, block explorers, and integrations.</p>
+
+            <h3>Connection</h3>
+            <pre class="code-block"># Start daemon with RPC
+./bitokd -rpcuser=myuser -rpcpassword=mypass -server
+
+# Protocol: JSON-RPC 1.0
+# Transport: HTTP POST
+# Port: 8332
+# Binding: 127.0.0.1 (localhost only)</pre>
+
+            <h3>Common Commands</h3>
+
+            <h4>Information</h4>
+            <pre class="code-block"># Get general info
+./bitokd getinfo
+
+# Get block count
+./bitokd getblockcount
+
+# Get difficulty
+./bitokd getdifficulty
+
+# Get connections
+./bitokd getconnectioncount</pre>
+
+            <h4>Wallet Operations</h4>
+            <pre class="code-block"># Get balance
+./bitokd getbalance
+
+# Generate new address
+./bitokd getnewaddress "label"
+
+# Send coins
+./bitokd sendtoaddress <address> <amount>
+
+# List transactions
+./bitokd listtransactions</pre>
+
+            <h4>Mining</h4>
+            <pre class="code-block"># Check mining status
+./bitokd getgenerate
+
+# Enable/disable mining
+./bitokd setgenerate true 4</pre>
+
+            <h3>Python Example</h3>
+            <pre class="code-block">import requests
+import json
+
+class BitokRPC:
+    def __init__(self, user, password, host='127.0.0.1', port=8332):
+        self.url = f'http://{host}:{port}/'
+        self.auth = (user, password)
+        self.headers = {'content-type': 'application/json'}
+        self.id = 0
+
+    def call(self, method, params=[]):
+        self.id += 1
+        payload = {
+            'jsonrpc': '1.0',
+            'id': self.id,
+            'method': method,
+            'params': params
+        }
+        response = requests.post(
+            self.url,
+            data=json.dumps(payload),
+            headers=self.headers,
+            auth=self.auth
+        )
+        return response.json()['result']
+
+# Usage
+rpc = BitokRPC('myuser', 'mypass')
+info = rpc.call('getinfo')
+print(f"Balance: {info['balance']} BITOK")
+print(f"Blocks: {info['blocks']}")</pre>
+
+            <h3>cURL Example</h3>
+            <pre class="code-block">curl --user myuser:mypass \
+     --data-binary '{"jsonrpc":"1.0","id":"1","method":"getinfo","params":[]}' \
+     -H 'content-type: application/json;' \
+     http://127.0.0.1:8332/</pre>
+        </section>
+
+        <section id="integrations" class="docs-section">
+            <h2>Integrations</h2>
+
+            <h3>Exchange Integration</h3>
+            <p>Integrating Bitok into an exchange requires implementing deposit detection and withdrawal processing.</p>
+
+            <h4>Deposit Address Generation</h4>
+            <pre class="code-block">def generate_deposit_address(rpc, user_id):
+    """Generate unique deposit address for user"""
+    label = f"deposit_user_{user_id}"
+    address = rpc.call('getnewaddress', [label])
+
+    # Store in database
+    db.execute(
+        "INSERT INTO deposit_addresses (user_id, address, label) "
+        "VALUES (?, ?, ?)",
+        (user_id, address, label)
+    )
+
+    return address</pre>
+
+            <h4>Deposit Detection</h4>
+            <pre class="code-block">def check_deposits(rpc, address, min_confirmations=6):
+    """Check for confirmed deposits"""
+    current_amount = rpc.call('getreceivedbyaddress', [address, 1])
+    confirmed_amount = rpc.call('getreceivedbyaddress', [address, min_confirmations])
+
+    if confirmed_amount > 0:
+        # Credit user account
+        credit_user(address, confirmed_amount)</pre>
+
+            <h4>Withdrawal Processing</h4>
+            <pre class="code-block">def process_withdrawal(rpc, address, amount):
+    """Process withdrawal request"""
+    # Validate address
+    valid = rpc.call('validateaddress', [address])
+    if not valid['isvalid']:
+        return {'error': 'Invalid address'}
+
+    # Send transaction
+    txid = rpc.call('sendtoaddress', [address, amount])
+    return {'success': True, 'txid': txid}</pre>
+
+            <h3>Mining Pool Integration</h3>
+            <p>Existing CPU miners like <code>cpuminer-multi</code> or <code>cpuminer-opt</code> support Yespower with proper parameters:</p>
+            <pre class="code-block">./cpuminer \
+    --algo=yespower \
+    --param-n=2048 \
+    --param-r=32 \
+    --param-key="BitokPoW" \
+    --url=http://127.0.0.1:8332 \
+    --user=rpcuser \
+    --pass=rpcpassword</pre>
+
+            <h3>Block Explorer</h3>
+            <p>This explorer itself is an example integration! It uses the RPC API to:</p>
+            <ul>
+                <li>Fetch blocks and transactions</li>
+                <li>Track addresses</li>
+                <li>Calculate network statistics</li>
+                <li>Monitor synchronization status</li>
+            </ul>
+        </section>
+
+        <section id="security" class="docs-section">
+            <h2>Security</h2>
+
+            <h3>Code Security</h3>
+            <p>This is 2010 code adapted for 2024. The cryptography is fine (ECDSA, SHA-256 for non-mining hashes). All security fixes from Satoshi's final release are included:</p>
+            <ul>
+                <li>Value overflow protection (184B coin bug)</li>
+                <li>Blockchain checkpoints</li>
+                <li>DoS limits</li>
+                <li>IsStandard() filtering</li>
+            </ul>
+
+            <h3>Wallet Security</h3>
+            <div class="callout callout-warning">
+                <strong>Critical:</strong> Back up your <code>wallet.dat</code> file. If you lose it, coins are gone forever. There is no recovery mechanism.
+            </div>
+
+            <h4>Backup Locations</h4>
+            <ul>
+                <li><strong>Linux:</strong> <code>~/.bitok/wallet.dat</code></li>
+                <li><strong>macOS:</strong> <code>~/Library/Application Support/Bitok/wallet.dat</code></li>
+                <li><strong>Windows:</strong> <code>%APPDATA%\Bitok\wallet.dat</code></li>
+            </ul>
+
+            <h3>RPC Security</h3>
+            <p>Best practices for securing the RPC interface:</p>
+            <ul>
+                <li><strong>Strong credentials:</strong> Use 32+ character random passwords</li>
+                <li><strong>Firewall rules:</strong> Restrict RPC port (8332) to trusted IPs only</li>
+                <li><strong>Local binding:</strong> RPC binds to 127.0.0.1 by default - keep it that way</li>
+                <li><strong>SSH tunneling:</strong> For remote access, use SSH tunnels instead of exposing the port</li>
+            </ul>
+
+            <h3>Network Security</h3>
+            <p>Bitok uses IRC bootstrap for peer discovery (same as original Bitcoin). Connects to <code>irc.libera.chat</code> channel <code>#bitok</code>.</p>
+
+            <p>Manual peer addition if needed:</p>
+            <pre class="code-block">./bitokd -addnode=<ip></pre>
+
+            <h3>General Warnings</h3>
+            <ul>
+                <li>Don't put life savings in this</li>
+                <li>Don't run on production systems without understanding the code</li>
+                <li>The networking and RPC are from 2010 - not hardened like modern Bitcoin</li>
+                <li>Test with small amounts first</li>
+            </ul>
+        </section>
+
+        <section class="docs-section">
+            <h2>Additional Resources</h2>
+            <ul class="resource-list">
+                <li><a href="https://github.com/elvisjedusor/bitok" target="_blank">GitHub Repository</a></li>
+                <li><a href="https://bitcoin.org/bitcoin.pdf" target="_blank">Bitcoin Whitepaper (Satoshi Nakamoto)</a></li>
+                <li><a href="https://www.openwall.com/yespower/" target="_blank">Yespower Algorithm Specification</a></li>
+                <li><a href="https://satoshi.nakamotoinstitute.org/" target="_blank">Satoshi Nakamoto Institute</a></li>
+            </ul>
+        </section>
+
+        <footer class="docs-footer">
+            <hr>
+            <p><em>"Writing a description for this thing is bloody hard. There's nothing to quite relate it to."</em></p>
+            <p><strong>- Satoshi Nakamoto, January 2009</strong></p>
+            <p style="margin-top: 20px;">Still true.</p>
+        </footer>
+    </main>
+</div>
+
+<style>
+.docs-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.docs-sidebar {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    padding: 15px;
+}
+
+.docs-sidebar h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 2px solid #c59000;
+    padding-bottom: 8px;
+}
+
+.docs-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.docs-nav a {
+    display: block;
+    padding: 8px 12px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.docs-nav a:hover {
+    background: #e8e8e8;
+    border-left-color: #c59000;
+    text-decoration: none;
+}
+
+.docs-content {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 30px;
+    min-height: 80vh;
+}
+
+.docs-title {
+    font-size: 32px;
+    color: #333;
+    margin: 0 0 10px 0;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #c59000;
+}
+
+.docs-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 30px 0;
+    font-style: italic;
+}
+
+.docs-section {
+    margin-bottom: 40px;
+    scroll-margin-top: 20px;
+}
+
+.docs-section h2 {
+    font-size: 24px;
+    color: #333;
+    margin: 30px 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #ddd;
+}
+
+.docs-section h3 {
+    font-size: 18px;
+    color: #444;
+    margin: 20px 0 10px 0;
+}
+
+.docs-section h4 {
+    font-size: 16px;
+    color: #555;
+    margin: 15px 0 8px 0;
+}
+
+.docs-section p {
+    line-height: 1.7;
+    color: #444;
+    margin-bottom: 12px;
+}
+
+.docs-section ul,
+.docs-section ol {
+    line-height: 1.8;
+    color: #444;
+    margin: 12px 0 12px 25px;
+}
+
+.docs-section li {
+    margin-bottom: 6px;
+}
+
+.code-block {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    border: 1px solid #555;
+    padding: 15px 18px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 15px 0;
+    border-radius: 4px;
+}
+
+.specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.specs-table th,
+.specs-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.specs-table th {
+    background: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+}
+
+.specs-table tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.specs-table tr:hover {
+    background: #ffffcc;
+}
+
+.specs-table code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+blockquote {
+    background: #f9f9f9;
+    border-left: 4px solid #c59000;
+    padding: 15px 20px;
+    margin: 20px 0;
+    font-style: italic;
+    color: #555;
+}
+
+.manifesto-quote {
+    font-size: 18px;
+    text-align: center;
+    background: #fffef0;
+    border-left: none;
+    border: 2px solid #c59000;
+    padding: 20px;
+    margin: 20px 0 30px 0;
+}
+
+.callout {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-left: 4px solid #0066cc;
+    padding: 15px 20px;
+    margin: 20px 0;
+}
+
+.callout-success {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+    border-left-color: #4caf50;
+}
+
+.callout-warning {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    border-left-color: #ff9800;
+}
+
+.callout strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.callout p {
+    margin: 0;
+    color: #444;
+}
+
+.resource-list {
+    list-style: none;
+    margin: 15px 0;
+    padding: 0;
+}
+
+.resource-list li {
+    margin-bottom: 10px;
+}
+
+.resource-list a {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.resource-list a:hover {
+    text-decoration: underline;
+}
+
+.docs-footer {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px solid #ddd;
+    text-align: center;
+    color: #666;
+}
+
+.docs-footer p {
+    margin: 8px 0;
+}
+
+@media (max-width: 900px) {
+    .docs-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .docs-sidebar {
+        position: static;
+        order: -1;
+    }
+
+    .docs-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .docs-nav a {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .docs-nav a:hover {
+        border-bottom-color: #c59000;
+        border-left-color: transparent;
+    }
+
+    .docs-content {
+        padding: 20px;
+    }
+
+    .docs-title {
+        font-size: 26px;
+    }
+
+    .docs-section h2 {
+        font-size: 20px;
+    }
+
+    .docs-section h3 {
+        font-size: 17px;
+    }
+
+    .code-block {
+        font-size: 12px;
+        padding: 12px 15px;
+    }
+
+    .specs-table {
+        font-size: 13px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .docs-content {
+        padding: 15px;
+    }
+
+    .docs-title {
+        font-size: 22px;
+    }
+
+    .docs-subtitle {
+        font-size: 14px;
+    }
+
+    .docs-section h2 {
+        font-size: 18px;
+    }
+
+    .docs-section h3 {
+        font-size: 16px;
+    }
+
+    .code-block {
+        font-size: 11px;
+        padding: 10px 12px;
+    }
+
+    .specs-table {
+        font-size: 12px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+        padding: 6px 8px;
+    }
+
+    blockquote {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    .manifesto-quote {
+        font-size: 16px;
+        padding: 15px;
+    }
+}
+</style>
+{% endblock %}
