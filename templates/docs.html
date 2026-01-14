@@ -39,8 +39,8 @@
             <p>Everything else is identical to Bitcoin v0.3.19: same transaction format, script system, networking code, wallet behavior, 21M cap, halving schedule. All security fixes from the Satoshi era are included from launch.</p>
 
             <div class="callout">
-                <strong>Why Satoshi v0.3.19?</strong>
-                <p>This version includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design philosophy before later protocol changes.</p>
+                <strong>Why Bitcoin v0.3.19?</strong>
+                <p>This version includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi and his philosophy, before later protocol changes.</p>
             </div>
         </section>
 
@@ -112,45 +112,14 @@ Settings → Options → Generate Coins</pre>
 # Get network difficulty
 ./bitokd getdifficulty</pre>
 
-            <h3>CPU Performance</h3>
-            <table class="specs-table">
-                <tr>
-                    <th>CPU Feature</th>
-                    <th>Hashrate per Core</th>
-                </tr>
-                <tr>
-                    <td>SSE2 only</td>
-                    <td>~1.0 kH/s</td>
-                </tr>
-                <tr>
-                    <td>AVX</td>
-                    <td>~2.0 kH/s</td>
-                </tr>
-                <tr>
-                    <td>AVX2</td>
-                    <td>~3.5 kH/s</td>
-                </tr>
-                <tr>
-                    <td>AVX512</td>
-                    <td>~5.0 kH/s</td>
-                </tr>
-            </table>
-
-            <p><strong>Example Hardware:</strong></p>
-            <ul>
-                <li>Intel i5-1135G7 (laptop, 4 cores): ~12 kH/s total</li>
-                <li>AMD Ryzen 5 5600X (desktop, 6 cores): ~21 kH/s total</li>
-                <li>Intel Xeon Gold 6248R (server, 48 cores): ~168 kH/s total</li>
-            </ul>
-
             <div class="callout callout-success">
                 <strong>GPU Resistance:</strong>
-                <p>With SHA-256, GPUs are 300x faster than CPUs. With Yespower, GPUs are only 5-6x faster and consume far more power, making them uneconomical for mining.</p>
+                <p>With SHA-256, GPUs are 300x faster than CPUs. With Yespower, GPUs are only 2-3x faster and consume far more power, making them uneconomical for mining.</p>
             </div>
         </section>
 
         <section id="btokpow" class="docs-section">
-            <h2>BtokPOW - Yespower Algorithm</h2>
+            <h2>BitokPOW - Yespower Algorithm</h2>
             <p>Yespower is a CPU-optimized, memory-hard hashing algorithm designed to resist GPU and ASIC acceleration while remaining efficient on consumer CPUs.</p>
 
             <h3>Why Yespower?</h3>
@@ -215,7 +184,7 @@ Settings → Options → Generate Coins</pre>
             <ul>
                 <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns</li>
                 <li><strong>SIMD Instructions:</strong> x86 CPUs have AVX2/AVX512 which Yespower exploits; GPUs have different SIMD that doesn't map efficiently</li>
-                <li><strong>Power Efficiency:</strong> CPU uses 50-100W for reasonable hashrate; GPU uses 250-350W for only 5-6x improvement</li>
+                <li><strong>Power Efficiency:</strong> CPU uses 50-100W for reasonable hashrate; GPU uses 250-350W for only 2-3x improvement</li>
             </ul>
         </section>
 
@@ -510,7 +479,7 @@ print(f"Blocks: {info['blocks']}")</pre>
             </ul>
 
             <h3>Network Security</h3>
-            <p>Bitok uses IRC bootstrap for peer discovery (same as original Bitcoin). Connects to <code>irc.libera.chat</code> channel <code>#bitok</code>.</p>
+            <p>Bitok uses IRC bootstrap for peer discovery (same as original Bitcoin). Connects to <code>irc.libera.chat</code> channel <code>#findsatoshi</code>.</p>
 
             <p>Manual peer addition if needed:</p>
             <pre class="code-block">./bitokd -addnode=<ip></pre>
@@ -796,12 +765,18 @@ blockquote {
     .docs-sidebar {
         position: static;
         order: -1;
+        padding: 12px;
+    }
+
+    .docs-sidebar h3 {
+        font-size: 15px;
+        margin-bottom: 10px;
     }
 
     .docs-nav {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 5px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
     }
 
     .docs-nav a {
@@ -809,11 +784,16 @@ blockquote {
         border-bottom: 3px solid transparent;
         padding: 10px 12px;
         font-size: 13px;
+        text-align: center;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
     }
 
     .docs-nav a:hover {
         border-bottom-color: #c59000;
         border-left-color: transparent;
+        background: #f9f9f9;
     }
 
     .docs-content {
@@ -835,25 +815,45 @@ blockquote {
     .code-block {
         font-size: 12px;
         padding: 12px 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .specs-table {
         font-size: 13px;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .specs-table th,
     .specs-table td {
         padding: 8px 10px;
+        white-space: nowrap;
+    }
+
+    .specs-table code {
+        font-size: 11px;
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+    .docs-nav {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .docs-nav a {
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+
     .docs-content {
-        padding: 15px;
+        padding: 16px;
     }
 
     .docs-title {
-        font-size: 22px;
+        font-size: 24px;
     }
 
     .docs-subtitle {
@@ -861,35 +861,171 @@ blockquote {
     }
 
     .docs-section h2 {
-        font-size: 18px;
+        font-size: 19px;
     }
 
     .docs-section h3 {
         font-size: 16px;
     }
 
+    .docs-section h4 {
+        font-size: 15px;
+    }
+
+    .docs-section p,
+    .docs-section li {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
     .code-block {
         font-size: 11px;
         padding: 10px 12px;
+        margin: 12px -6px;
+        border-radius: 0;
     }
 
     .specs-table {
         font-size: 12px;
+        margin: 12px -6px;
     }
 
     .specs-table th,
     .specs-table td {
-        padding: 6px 8px;
+        padding: 7px 9px;
     }
 
     blockquote {
         padding: 12px 15px;
         font-size: 14px;
+        margin: 15px 0;
     }
 
     .manifesto-quote {
         font-size: 16px;
         padding: 15px;
+    }
+
+    .callout {
+        padding: 12px 15px;
+        margin: 15px 0;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .docs-nav {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .docs-nav a {
+        font-size: 13px;
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    .docs-content {
+        padding: 12px;
+    }
+
+    .docs-title {
+        font-size: 22px;
+        padding-bottom: 10px;
+    }
+
+    .docs-subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    .docs-section {
+        margin-bottom: 30px;
+    }
+
+    .docs-section h2 {
+        font-size: 18px;
+        margin: 25px 0 12px 0;
+    }
+
+    .docs-section h3 {
+        font-size: 15px;
+        margin: 15px 0 8px 0;
+    }
+
+    .docs-section h4 {
+        font-size: 14px;
+    }
+
+    .docs-section p,
+    .docs-section li {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .docs-section ul,
+    .docs-section ol {
+        margin-left: 18px;
+    }
+
+    .code-block {
+        font-size: 10px;
+        padding: 10px;
+        margin: 10px -8px;
+        line-height: 1.5;
+    }
+
+    .specs-table {
+        font-size: 11px;
+        margin: 10px -8px;
+    }
+
+    .specs-table th,
+    .specs-table td {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .specs-table code {
+        font-size: 10px;
+        padding: 1px 4px;
+    }
+
+    blockquote {
+        padding: 10px 12px;
+        font-size: 13px;
+        margin: 12px 0;
+    }
+
+    .manifesto-quote {
+        font-size: 15px;
+        padding: 12px;
+    }
+
+    .callout {
+        padding: 10px 12px;
+        margin: 12px 0;
+        font-size: 13px;
+    }
+
+    .callout strong {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+
+    .resource-list a {
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+    .docs-footer {
+        margin-top: 30px;
+        padding-top: 20px;
+        font-size: 13px;
+    }
+
+    .docs-footer p {
+        font-size: 13px;
     }
 }
 </style>
