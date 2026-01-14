@@ -513,12 +513,19 @@ print(f"Blocks: {info['blocks']}")</pre>
 </div>
 
 <style>
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 .docs-container {
     display: grid;
     grid-template-columns: 250px 1fr;
     gap: 30px;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .docs-sidebar {
@@ -565,6 +572,8 @@ print(f"Blocks: {info['blocks']}")</pre>
     border: 1px solid #ccc;
     padding: 30px;
     min-height: 80vh;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .docs-title {
@@ -585,6 +594,8 @@ print(f"Blocks: {info['blocks']}")</pre>
 .docs-section {
     margin-bottom: 40px;
     scroll-margin-top: 20px;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 .docs-section h2 {
@@ -593,24 +604,29 @@ print(f"Blocks: {info['blocks']}")</pre>
     margin: 30px 0 15px 0;
     padding-bottom: 8px;
     border-bottom: 2px solid #ddd;
+    word-wrap: break-word;
 }
 
 .docs-section h3 {
     font-size: 18px;
     color: #444;
     margin: 20px 0 10px 0;
+    word-wrap: break-word;
 }
 
 .docs-section h4 {
     font-size: 16px;
     color: #555;
     margin: 15px 0 8px 0;
+    word-wrap: break-word;
 }
 
 .docs-section p {
     line-height: 1.7;
     color: #444;
     margin-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .docs-section ul,
@@ -622,6 +638,8 @@ print(f"Blocks: {info['blocks']}")</pre>
 
 .docs-section li {
     margin-bottom: 6px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .code-block {
@@ -635,6 +653,8 @@ print(f"Blocks: {info['blocks']}")</pre>
     white-space: pre;
     margin: 15px 0;
     border-radius: 4px;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .specs-table {
@@ -642,6 +662,13 @@ print(f"Blocks: {info['blocks']}")</pre>
     border-collapse: collapse;
     margin: 15px 0;
     font-size: 14px;
+    max-width: 100%;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .specs-table th,
@@ -672,6 +699,8 @@ print(f"Blocks: {info['blocks']}")</pre>
     border-radius: 3px;
     font-family: 'Courier New', monospace;
     font-size: 12px;
+    word-break: break-all;
+    white-space: normal;
 }
 
 blockquote {
@@ -681,6 +710,9 @@ blockquote {
     margin: 20px 0;
     font-style: italic;
     color: #555;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 .manifesto-quote {
@@ -699,6 +731,9 @@ blockquote {
     border-left: 4px solid #0066cc;
     padding: 15px 20px;
     margin: 20px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 .callout-success {
@@ -738,6 +773,8 @@ blockquote {
     color: #0066cc;
     text-decoration: none;
     font-size: 15px;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .resource-list a:hover {
@@ -760,12 +797,17 @@ blockquote {
     .docs-container {
         grid-template-columns: 1fr;
         gap: 20px;
+        padding: 0;
+        margin: 0;
+        width: 100%;
     }
 
     .docs-sidebar {
         position: static;
         order: -1;
         padding: 12px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .docs-sidebar h3 {
@@ -788,6 +830,7 @@ blockquote {
         background: #fff;
         border: 1px solid #ddd;
         border-radius: 4px;
+        box-sizing: border-box;
     }
 
     .docs-nav a:hover {
@@ -798,6 +841,8 @@ blockquote {
 
     .docs-content {
         padding: 20px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .docs-title {
@@ -849,7 +894,12 @@ blockquote {
     }
 
     .docs-content {
-        padding: 16px;
+        padding: 15px;
+        width: 100%;
+    }
+
+    .docs-sidebar {
+        padding: 10px;
     }
 
     .docs-title {
@@ -881,13 +931,13 @@ blockquote {
     .code-block {
         font-size: 11px;
         padding: 10px 12px;
-        margin: 12px -6px;
+        margin: 12px 0;
         border-radius: 0;
     }
 
     .specs-table {
         font-size: 12px;
-        margin: 12px -6px;
+        margin: 12px 0;
     }
 
     .specs-table th,
@@ -914,6 +964,10 @@ blockquote {
 }
 
 @media (max-width: 480px) {
+    .docs-container {
+        gap: 15px;
+    }
+
     .docs-nav {
         grid-template-columns: 1fr;
         gap: 6px;
@@ -925,8 +979,15 @@ blockquote {
         text-align: left;
     }
 
+    .docs-sidebar {
+        padding: 8px;
+    }
+
     .docs-content {
-        padding: 12px;
+        padding: 10px;
+        width: 100%;
+        border-left: none;
+        border-right: none;
     }
 
     .docs-title {
@@ -971,13 +1032,14 @@ blockquote {
     .code-block {
         font-size: 10px;
         padding: 10px;
-        margin: 10px -8px;
+        margin: 10px 0;
         line-height: 1.5;
+        border-radius: 0;
     }
 
     .specs-table {
         font-size: 11px;
-        margin: 10px -8px;
+        margin: 10px 0;
     }
 
     .specs-table th,
