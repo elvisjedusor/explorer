@@ -20,14 +20,14 @@
         <!-- Overview Tab -->
         <div class="tab-content active" id="overview">
             <h1>What is Bitok</h1>
-            <p class="lead">Bitcoin v0.3.19 (Satoshi Nakamoto's final release from December 2010) adapted to run on modern systems with GPU-resistant proof-of-work.</p>
+            <p class="lead">What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase? No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
 
             <div class="info-box">
-                <h3>This is the last version of Bitcoin that Satoshi worked on</h3>
-                <p>Running as its own network with one critical change: a mining algorithm that keeps CPU mining viable.</p>
+                <h3>Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement. Everything after that is history. Not destiny.</h3>
+                <p>I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and **resist GPU mining**.</p>
             </div>
 
-            <h2>Key Changes from Original Bitcoin</h2>
+            <h2>Key Changes Bitok 0.3.19 from Bitcoin v0.3.19</h2>
             <div class="grid-2">
                 <div class="feature-card">
                     <h4>✅ Modern System Compatibility</h4>
@@ -39,11 +39,11 @@
                 </div>
                 <div class="feature-card">
                     <h4>✅ New Genesis Block</h4>
-                    <p>Separate network with fresh blockchain</p>
+                    <p>Separate network. No confusion with BTC. No replay attacks. Clean slate.</p>
                 </div>
                 <div class="feature-card">
                     <h4>✅ Security Fixes Included</h4>
-                    <p>All Satoshi-era security fixes present from launch</p>
+                    <p>All Satoshi-era code security fixes present from launch</p>
                 </div>
             </div>
 
@@ -59,8 +59,8 @@
             </ul>
 
             <div class="callout-info">
-                <strong>Why Bitcoin v0.3.19?</strong>
-                <p>This version includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi and his philosophy, before later protocol changes.</p>
+                <strong>Security</strong>
+                <p>Bitok includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi and his philosophy, before later protocol changes.</p>
             </div>
 
             <h2>Technical Specifications</h2>
@@ -123,8 +123,8 @@ nNonce:    37137</pre>
 ./bitokd -daemon -gen</pre>
 
             <h3>GUI Wallet</h3>
-            <p>Settings → Options → Generate Coins</p>
-            <p>Check the box to enable mining and adjust the processor limit if desired.</p>
+            <p>Generate Coins</p>
+            <p>Click button to enable mining and adjust the processor limit if desired.</p>
 
             <h2>Mining Commands (RPC)</h2>
             <pre class="code-block"># Enable mining with 4 threads
@@ -138,53 +138,6 @@ nNonce:    37137</pre>
 
 # Get general info (includes mining status)
 ./bitokd getinfo</pre>
-
-            <h2>Mining Performance</h2>
-            <table class="specs-table">
-                <thead>
-                    <tr>
-                        <th>CPU Feature</th>
-                        <th>Hash Rate (per core)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>SSE2 only</td>
-                        <td>~1.0 kH/s</td>
-                    </tr>
-                    <tr>
-                        <td>AVX</td>
-                        <td>~2.0 kH/s</td>
-                    </tr>
-                    <tr>
-                        <td>AVX2</td>
-                        <td>~3.5 kH/s</td>
-                    </tr>
-                    <tr>
-                        <td>AVX512</td>
-                        <td>~5.0 kH/s</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>Example Hardware Performance</h3>
-            <ul>
-                <li><strong>Intel i5-1135G7</strong> (laptop, 4 cores): ~12 kH/s total</li>
-                <li><strong>AMD Ryzen 5 5600X</strong> (desktop, 6 cores): ~21 kH/s total</li>
-                <li><strong>Intel Xeon Gold 6248R</strong> (server, 48 cores): ~168 kH/s total</li>
-            </ul>
-
-            <div class="callout-success">
-                <strong>GPU Resistance</strong>
-                <p>With SHA-256, GPUs are 300x faster than CPUs. With Yespower, GPUs are only 2-3x faster and consume far more power, making them uneconomical for mining.</p>
-            </div>
-
-            <h2>Why GPUs Can't Win</h2>
-            <ul>
-                <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns. Yespower requires 128KB per hash with pseudo-random access.</li>
-                <li><strong>SIMD Instructions:</strong> Modern x86 CPUs have AVX2/AVX512 which Yespower exploits. GPUs have different SIMD that doesn't map efficiently.</li>
-                <li><strong>Power Efficiency:</strong> A CPU mining Yespower uses 50-100W for reasonable hashrate. A GPU uses 250-350W for only 5-6x improvement.</li>
-            </ul>
 
             <h2>Mining Pool Integration</h2>
             <p>Existing CPU miners like <code>cpuminer-multi</code> or <code>cpuminer-opt</code> support Yespower with proper parameters:</p>
@@ -873,52 +826,19 @@ if (hash <= target) {
                 </div>
             </div>
 
-            <h2>GPU Performance Comparison</h2>
-            <table class="specs-table">
-                <thead>
-                    <tr>
-                        <th>Device</th>
-                        <th>SHA-256</th>
-                        <th>Yespower</th>
-                        <th>Advantage</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Intel i7-10700K</td>
-                        <td>10 MH/s</td>
-                        <td>15 kH/s</td>
-                        <td>baseline</td>
-                    </tr>
-                    <tr>
-                        <td>NVIDIA RTX 3080</td>
-                        <td>3000 MH/s</td>
-                        <td>~100 kH/s</td>
-                        <td>300x → 6x</td>
-                    </tr>
-                    <tr>
-                        <td>AMD RX 6800 XT</td>
-                        <td>2500 MH/s</td>
-                        <td>~80 kH/s</td>
-                        <td>250x → 5x</td>
-                    </tr>
-                </tbody>
-            </table>
 
-            <div class="callout-success">
-                <p><strong>Bottom Line:</strong> With SHA-256, GPUs are 300x faster than CPUs. With Yespower, GPUs are only 5-6x faster and consume far more power, making them uneconomical.</p>
-            </div>
+          
 
             <h2>Why GPUs Can't Win</h2>
             <ul class="check-list">
                 <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns. Yespower's 128KB per hash with pseudo-random access exploits this weakness.</li>
                 <li><strong>SIMD Instructions:</strong> Modern x86 CPUs have AVX2/AVX512 which Yespower leverages. GPU SIMD architectures don't map efficiently to Yespower operations.</li>
-                <li><strong>Power Efficiency:</strong> A CPU uses 50-100W for reasonable hashrate. A GPU uses 250-350W for only 5-6x improvement. Cost per hash favors CPUs.</li>
+                <li><strong>Power Efficiency:</strong> A CPU uses 50-100W for reasonable hashrate. A GPU uses 250-350W for only 2-3x improvement. Cost per hash favors CPUs.</li>
             </ul>
 
             <h2>Security Analysis</h2>
             <p><strong>Preimage Attacks:</strong> Finding hash collision requires 2^256 operations. Both SHA-256 and Yespower are resistant.</p>
-            <p><strong>GPU Mining Attacks:</strong> SHA-256 allows 100-1000x speedup with GPUs. Yespower reduces this to 5-6x while making GPUs uneconomical due to power costs.</p>
+            <p><strong>GPU Mining Attacks:</strong> SHA-256 allows 100-1000x speedup with GPUs. Yespower reduces this to 2-3x while making GPUs uneconomical due to power costs.</p>
             <p><strong>ASIC Mining Attacks:</strong> SHA-256 ASICs provide 100,000x speedup over CPUs. Yespower's memory-hard design makes ASICs impractical (memory cost dominates chip design).</p>
             <p><strong>Memory-Hardness Attacks:</strong> Yespower requires 128KB per hash. Attempts to reduce memory usage result in exponentially slower performance.</p>
 
@@ -930,12 +850,7 @@ if (hash <= target) {
         <!-- Manifesto Tab -->
         <div class="tab-content" id="manifesto">
             <h1>Bitok Manifesto</h1>
-
-            <div class="manifesto-quote">
-                <p>I took Bitcoin v0.3.19, changed the mining algorithm so GPUs can't dominate, gave it a new genesis block, and ran it.</p>
-                <p>That's the manifesto.</p>
-            </div>
-
+            <p class="lead">An experiment in what Bitcoin would look like if Satoshi's vision of CPU mining had held up.</p>
             <h2>What Happened to Bitcoin</h2>
             <p>Bitcoin worked in 2010. You downloaded the software, clicked "Generate Coins," and your laptop found blocks. The network grew because participation was free and easy.</p>
             <p>Then GPUs happened. Then mining pools. Then FPGAs, ASICs. The barrier to entry went from "own a computer" to "have access to cheap electricity and specialized hardware."</p>
