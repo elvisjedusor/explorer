@@ -3,135 +3,422 @@
 {% block title %}Documentation - {{ config.COIN_NAME }}{% endblock %}
 
 {% block content %}
-<div class="docs-container">
-    <!-- Mobile Navigation -->
-    <div class="mobile-nav-wrapper">
-        <button class="mobile-nav-toggle" id="mobileNavToggle">
-            <span class="hamburger-icon">☰</span>
-            <span class="nav-title">Documentation Menu</span>
-        </button>
-        <div class="mobile-nav-dropdown" id="mobileNavDropdown">
-            <a href="#" data-tab="overview" class="mobile-nav-link active">Overview</a>
-            <a href="#" data-tab="mining" class="mobile-nav-link">Mining</a>
-            <a href="#" data-tab="building" class="mobile-nav-link">Building</a>
-            <a href="#" data-tab="rpc" class="mobile-nav-link">RPC API</a>
-            <a href="#" data-tab="bitokpow" class="mobile-nav-link">BitokPOW</a>
-            <a href="#" data-tab="manifesto" class="mobile-nav-link">Manifesto</a>
+<style>
+.docs-nav {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 0;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    overflow-x: auto;
+}
+
+.docs-nav a {
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+    border-right: 1px solid #ddd;
+    font-weight: bold;
+    font-size: 13px;
+    background: #f5f5f5;
+    white-space: nowrap;
+}
+
+.docs-nav a:hover {
+    background: #e8e8e8;
+}
+
+.docs-nav a.active {
+    background: #c59000;
+    color: #fff;
+}
+
+.docs-content {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.docs-content h1 {
+    font-size: 24px;
+    color: #333;
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #c59000;
+}
+
+.docs-content h2 {
+    font-size: 19px;
+    color: #333;
+    margin: 25px 0 12px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ddd;
+}
+
+.docs-content h3 {
+    font-size: 16px;
+    color: #333;
+    margin: 18px 0 10px 0;
+    font-weight: bold;
+}
+
+.docs-content h4 {
+    font-size: 14px;
+    color: #333;
+    margin: 15px 0 8px 0;
+    font-weight: bold;
+}
+
+.docs-content p {
+    margin: 0 0 12px 0;
+    line-height: 1.6;
+    color: #333;
+}
+
+.docs-content ul,
+.docs-content ol {
+    margin: 0 0 12px 20px;
+    line-height: 1.7;
+}
+
+.docs-content li {
+    margin-bottom: 5px;
+}
+
+.docs-content code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #d14;
+}
+
+.docs-content pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 15px;
+    margin: 15px 0;
+    overflow-x: auto;
+    border: 1px solid #000;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.docs-content pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: #f8f8f2;
+}
+
+.info-box {
+    background: #e7f3ff;
+    border: 1px solid #69c;
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #069;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #fc3;
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #f90;
+}
+
+.success-box {
+    background: #d4edda;
+    border: 1px solid #9c9;
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #090;
+}
+
+.quote-box {
+    background: #f9f9f9;
+    border-left: 4px solid #c59000;
+    padding: 12px 15px;
+    margin: 15px 0;
+    font-style: italic;
+    color: #555;
+}
+
+.quote-box strong {
+    color: #c59000;
+    font-style: normal;
+}
+
+.spec-table {
+    width: 100%;
+    margin: 15px 0;
+    border-collapse: collapse;
+}
+
+.spec-table td {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+}
+
+.spec-table td:first-child {
+    font-weight: bold;
+    background: #f5f5f5;
+    width: 180px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.feature-card {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 12px;
+}
+
+.feature-card h4 {
+    margin: 0 0 8px 0;
+    color: #c59000;
+}
+
+.platform-selector {
+    display: flex;
+    gap: 8px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.platform-btn {
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.platform-btn:hover {
+    background: #e8e8e8;
+}
+
+.platform-btn.active {
+    background: #c59000;
+    color: #fff;
+    border-color: #a07800;
+}
+
+.platform-content {
+    display: none;
+}
+
+.platform-content.active {
+    display: block;
+}
+
+.comparison-table {
+    width: 100%;
+    margin: 15px 0;
+}
+
+.comparison-table td {
+    padding: 8px;
+    text-align: center;
+}
+
+.comparison-table td:first-child {
+    text-align: left;
+    font-weight: bold;
+}
+
+.badge-yes {
+    background: #cfc;
+    color: #060;
+    padding: 3px 8px;
+    border: 1px solid #090;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.badge-no {
+    background: #fcc;
+    color: #c00;
+    padding: 3px 8px;
+    border: 1px solid #900;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.rpc-cmd {
+    background: #f9f9f9;
+    border-left: 3px solid #c59000;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+.rpc-cmd h4 {
+    margin: 0 0 8px 0;
+    font-family: 'Courier New', Courier, monospace;
+    color: #c59000;
+}
+
+.rpc-params {
+    font-size: 13px;
+    margin: 8px 0;
+    color: #666;
+}
+
+@media (max-width: 900px) {
+    .docs-nav {
+        flex-direction: column;
+    }
+
+    .docs-nav a {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding: 14px 15px;
+        font-size: 14px;
+    }
+
+    .docs-content {
+        padding: 15px;
+    }
+
+    .docs-content h1 {
+        font-size: 20px;
+    }
+
+    .docs-content h2 {
+        font-size: 17px;
+    }
+
+    .docs-content h3 {
+        font-size: 15px;
+    }
+
+    .docs-content pre {
+        padding: 12px;
+        font-size: 12px;
+        overflow-x: auto;
+    }
+
+    .spec-table td:first-child {
+        width: auto;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .platform-selector {
+        flex-direction: column;
+    }
+
+    .platform-btn {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+</style>
+
+<nav class="docs-nav">
+    <a href="#overview" class="tab-link active" data-tab="overview">Overview</a>
+    <a href="#mining" class="tab-link" data-tab="mining">Mining</a>
+    <a href="#building" class="tab-link" data-tab="building">Building</a>
+    <a href="#rpc" class="tab-link" data-tab="rpc">RPC API</a>
+    <a href="#bitokpow" class="tab-link" data-tab="bitokpow">BitokPOW</a>
+    <a href="#manifesto" class="tab-link" data-tab="manifesto">Manifesto</a>
+</nav>
+
+<div class="docs-content">
+    <div id="overview" class="tab-pane active">
+        <h1>What is Bitok</h1>
+        <p><strong>What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase?</strong> No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+
+        <div class="info-box">
+            <strong>Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement.</strong> Everything after that is history. Not destiny.
         </div>
-    </div>
 
-    <div class="docs-layout">
-        <!-- Desktop Sidebar -->
-        <aside class="docs-sidebar">
-            <h3>Documentation</h3>
-            <nav class="docs-nav">
-                <a href="#" data-tab="overview" class="nav-link active">Overview</a>
-                <a href="#" data-tab="mining" class="nav-link">Mining</a>
-                <a href="#" data-tab="building" class="nav-link">Building</a>
-                <a href="#" data-tab="rpc" class="nav-link">RPC API</a>
-                <a href="#" data-tab="bitokpow" class="nav-link">BitokPOW</a>
-                <a href="#" data-tab="manifesto" class="nav-link">Manifesto</a>
-            </nav>
-        </aside>
+        <p>I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and resist GPU mining.</p>
 
-        <main class="docs-content">
-            <!-- Overview Tab -->
-            <article class="tab-content active" id="overview">
-                <h1>What is Bitok</h1>
-                <p class="lead">What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase? No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+        <h2>Key Changes from Bitcoin v0.3.19</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>✓ Modern System Compatibility</h4>
+                <p>Updated build system for OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2</p>
+            </div>
+            <div class="feature-card">
+                <h4>✓ Yespower Proof-of-Work</h4>
+                <p>Replaced SHA-256 with Yespower 1.0 for CPU-friendly, GPU/ASIC-resistant mining</p>
+            </div>
+            <div class="feature-card">
+                <h4>✓ New Genesis Block</h4>
+                <p>Separate network. No confusion with BTC. No replay attacks. Clean slate.</p>
+            </div>
+            <div class="feature-card">
+                <h4>✓ Security Fixes</h4>
+                <p>All Satoshi-era security fixes present from launch</p>
+            </div>
+        </div>
 
-                <div class="info-box">
-                    <h3>Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement. Everything after that is history. Not destiny.</h3>
-                </div>
-                <p class="lead">I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and resist GPU mining.</p>
+        <h2>What's Identical to Bitcoin v0.3.19</h2>
+        <ul>
+            <li>Same transaction format</li>
+            <li>Same script system</li>
+            <li>Same networking code</li>
+            <li>Same wallet behavior</li>
+            <li>21M supply cap</li>
+            <li>Halving schedule</li>
+            <li>10 minute blocks</li>
+        </ul>
 
-                <h2>Key Changes Bitok 0.3.19 from Bitcoin v0.3.19</h2>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <h4>✅ Modern System Compatibility</h4>
-                        <p>Updated build system for OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>✅ Yespower Proof-of-Work</h4>
-                        <p>Replaced SHA-256 with Yespower 1.0 for CPU-friendly, GPU/ASIC-resistant mining</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>✅ New Genesis Block</h4>
-                        <p>Separate network. No confusion with BTC. No replay attacks. Clean slate.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>✅ Security Fixes Included</h4>
-                        <p>All Satoshi-era code security fixes present from launch</p>
-                    </div>
-                </div>
+        <div class="success-box">
+            <strong>Security:</strong> Bitok includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi.
+        </div>
 
-                <h2>What's Identical to Bitcoin v0.3.19</h2>
-                <ul class="check-list">
-                    <li>Same transaction format</li>
-                    <li>Same script system</li>
-                    <li>Same networking code</li>
-                    <li>Same wallet behavior</li>
-                    <li>21M supply cap</li>
-                    <li>Halving schedule</li>
-                    <li>10 minute blocks</li>
-                </ul>
+        <h2>Technical Specifications</h2>
+        <table class="spec-table">
+            <tr><td>Algorithm</td><td>Yespower 1.0 (N=2048, r=32, personalization="BitokPoW")</td></tr>
+            <tr><td>Block Time</td><td>10 minutes (600 seconds)</td></tr>
+            <tr><td>Block Reward</td><td>50 BITOK, halving every 210,000 blocks</td></tr>
+            <tr><td>Max Supply</td><td>21,000,000 BITOK</td></tr>
+            <tr><td>Difficulty Adjustment</td><td>Every 2016 blocks (~2 weeks)</td></tr>
+            <tr><td>Coinbase Maturity</td><td>100 blocks</td></tr>
+            <tr><td>P2P Port</td><td>18333</td></tr>
+            <tr><td>RPC Port</td><td>8332</td></tr>
+        </table>
 
-                <div class="callout-box info">
-                    <strong>Security</strong>
-                    <p>Bitok includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi and his philosophy, before later protocol changes.</p>
-                </div>
-
-                <h2>Technical Specifications</h2>
-                <div class="spec-list">
-                    <div class="spec-item">
-                        <dt>Algorithm</dt>
-                        <dd>Yespower 1.0 (N=2048, r=32, personalization="BitokPoW")</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Block Time</dt>
-                        <dd>10 minutes (600 seconds)</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Block Reward</dt>
-                        <dd>50 BITOK, halving every 210,000 blocks</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Max Supply</dt>
-                        <dd>21,000,000 BITOK</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Difficulty Adjustment</dt>
-                        <dd>Every 2016 blocks (~2 weeks)</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Coinbase Maturity</dt>
-                        <dd>100 blocks</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>P2P Port</dt>
-                        <dd>18333</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>RPC Port</dt>
-                        <dd>8332</dd>
-                    </div>
-                </div>
-
-                <h3>Genesis Block</h3>
-                <pre class="code-block"><code>Hash:      0x0290400ea28d3fe79d102ca6b7cd11cee5eba9f17f2046c303d92f65d6ed2617
+        <h3>Genesis Block</h3>
+        <pre><code>Hash:      0x0290400ea28d3fe79d102ca6b7cd11cee5eba9f17f2046c303d92f65d6ed2617
 Message:   "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
 nBits:     0x1effffff
 nNonce:    37137</code></pre>
-            </article>
+    </div>
 
-            <!-- Mining Tab -->
-            <article class="tab-content" id="mining">
-                <h1>Mining Bitok</h1>
-                <p class="lead">Bitok uses Yespower proof-of-work, designed to keep mining accessible to regular users with regular computers.</p>
+    <div id="mining" class="tab-pane">
+        <h1>Mining Bitok</h1>
+        <p>Bitok uses Yespower proof-of-work, designed to keep mining accessible to regular users with regular computers.</p>
 
-                <h2>Start Mining</h2>
-                <h3>Daemon (Command Line)</h3>
-                <pre class="code-block"><code># Mine with all CPU cores
+        <h2>Start Mining</h2>
+
+        <h3>Daemon (Command Line)</h3>
+        <pre><code># Mine with all CPU cores
 ./bitokd -gen
 
 # Mine with specific number of cores
@@ -140,12 +427,11 @@ nNonce:    37137</code></pre>
 # Start daemon in background with mining
 ./bitokd -daemon -gen</code></pre>
 
-                <h3>GUI Wallet</h3>
-                <p>Generate Coins</p>
-                <p>Click button to enable mining and adjust the processor limit if desired.</p>
+        <h3>GUI Wallet</h3>
+        <p>Click "Generate Coins" button to enable mining and adjust the processor limit if desired.</p>
 
-                <h2>Mining Commands (RPC)</h2>
-                <pre class="code-block"><code># Enable mining with 4 threads
+        <h2>Mining Commands (RPC)</h2>
+        <pre><code># Enable mining with 4 threads
 ./bitokd setgenerate true 4
 
 # Check mining status
@@ -157,9 +443,9 @@ nNonce:    37137</code></pre>
 # Get general info (includes mining status)
 ./bitokd getinfo</code></pre>
 
-                <h2>Mining Pool Integration</h2>
-                <p>Existing CPU miners like <code>cpuminer-multi</code> or <code>cpuminer-opt</code> support Yespower with proper parameters:</p>
-                <pre class="code-block"><code>./cpuminer \
+        <h2>Mining Pool Integration</h2>
+        <p>Existing CPU miners like <code>cpuminer-multi</code> or <code>cpuminer-opt</code> support Yespower with proper parameters:</p>
+        <pre><code>./cpuminer \
     --algo=yespower \
     --param-n=2048 \
     --param-r=32 \
@@ -167,25 +453,23 @@ nNonce:    37137</code></pre>
     --url=http://127.0.0.1:8332 \
     --user=rpcuser \
     --pass=rpcpassword</code></pre>
-            </article>
+    </div>
 
-            <!-- Building Tab -->
-            <article class="tab-content" id="building">
-                <h1>Building from Source</h1>
+    <div id="building" class="tab-pane">
+        <h1>Building from Source</h1>
 
-                <div class="platform-tabs">
-                    <button class="platform-tab active" data-platform="unix">Linux/Unix</button>
-                    <button class="platform-tab" data-platform="macos">macOS</button>
-                    <button class="platform-tab" data-platform="windows">Windows</button>
-                </div>
+        <div class="platform-selector">
+            <button class="platform-btn active" data-platform="unix">Linux/Unix</button>
+            <button class="platform-btn" data-platform="macos">macOS</button>
+            <button class="platform-btn" data-platform="windows">Windows</button>
+        </div>
 
-                <!-- Unix Build -->
-                <div class="platform-content active" id="unix">
-                    <h2>Ubuntu / Debian Build</h2>
-                    <p>Compatible with Ubuntu 24.04 LTS and modern toolchains (GCC 11+, OpenSSL 3.x, Boost 1.74+)</p>
+        <div id="unix" class="platform-content active">
+            <h2>Ubuntu / Debian Build</h2>
+            <p>Compatible with Ubuntu 24.04 LTS and modern toolchains (GCC 11+, OpenSSL 3.x, Boost 1.74+)</p>
 
-                    <h3>Install Dependencies</h3>
-                    <pre class="code-block"><code>sudo apt-get update
+            <h3>Install Dependencies</h3>
+            <pre><code>sudo apt-get update
 sudo apt-get install build-essential
 sudo apt-get install libssl-dev
 sudo apt-get install libdb-dev libdb5.3-dev
@@ -195,353 +479,220 @@ sudo apt-get install libboost-all-dev
 sudo apt-get install libwxgtk3.2-dev
 sudo apt-get install libgtk-3-dev</code></pre>
 
-                    <h3>Build Daemon</h3>
-                    <pre class="code-block"><code>make -f makefile.unix clean
-make -f makefile.unix</code></pre>
+            <h3>Build</h3>
+            <pre><code># Daemon only
+make -f makefile.unix
 
-                    <h3>Build GUI Wallet</h3>
-                    <pre class="code-block"><code>make -f makefile.unix gui</code></pre>
+# GUI wallet
+make -f makefile.unix gui
 
-                    <h3>Build Both</h3>
-                    <pre class="code-block"><code>make -f makefile.unix all</code></pre>
+# Both
+make -f makefile.unix all</code></pre>
 
-                    <h3>CPU Optimization</h3>
-                    <p>Default builds use <code>-march=native</code> for maximum performance on your system.</p>
-                    <p>For distribution binaries:</p>
-                    <pre class="code-block"><code># Modern CPUs (2015+)
+            <h3>CPU Optimization</h3>
+            <p>Default builds use <code>-march=native</code> for maximum performance.</p>
+            <p>For distribution binaries:</p>
+            <pre><code># Modern CPUs (2015+)
 make -f makefile.unix all YESPOWER_ARCH=x86-64-v3
 
 # Maximum compatibility
 make -f makefile.unix all YESPOWER_ARCH=x86-64</code></pre>
 
-                    <h3>Install</h3>
-                    <pre class="code-block"><code>sudo make -f makefile.unix install</code></pre>
+            <h3>Install</h3>
+            <pre><code>sudo make -f makefile.unix install</code></pre>
 
-                    <h3>Data Directory</h3>
-                    <p><code>~/.bitok/</code></p>
-                    <p><strong>IMPORTANT:</strong> Back up <code>~/.bitok/wallet.dat</code> regularly!</p>
-                </div>
+            <h3>Data Directory</h3>
+            <p><code>~/.bitok/</code></p>
+            <div class="warning-box">
+                <strong>IMPORTANT:</strong> Back up <code>~/.bitok/wallet.dat</code> regularly!
+            </div>
+        </div>
 
-                <!-- macOS Build -->
-                <div class="platform-content" id="macos">
-                    <h2>macOS Build (11.0+ Big Sur)</h2>
-                    <p>Supports both Apple Silicon (arm64) and Intel (x86_64)</p>
+        <div id="macos" class="platform-content">
+            <h2>macOS Build (11.0+ Big Sur)</h2>
+            <p>Supports both Apple Silicon (arm64) and Intel (x86_64)</p>
 
-                    <h3>Install Xcode Command Line Tools</h3>
-                    <pre class="code-block"><code>xcode-select --install</code></pre>
+            <h3>Install Xcode Command Line Tools</h3>
+            <pre><code>xcode-select --install</code></pre>
 
-                    <h3>Install Homebrew</h3>
-                    <pre class="code-block"><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
+            <h3>Install Homebrew</h3>
+            <pre><code>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code></pre>
 
-                    <h3>Install Dependencies</h3>
-                    <pre class="code-block"><code>brew install boost berkeley-db@4 openssl@3 wxwidgets</code></pre>
+            <h3>Install Dependencies</h3>
+            <pre><code>brew install boost berkeley-db@4 openssl@3 wxwidgets</code></pre>
 
-                    <h3>Build Daemon</h3>
-                    <pre class="code-block"><code>make -f makefile.osx bitokd</code></pre>
+            <h3>Build</h3>
+            <pre><code># Daemon
+make -f makefile.osx bitokd
 
-                    <h3>Build GUI Wallet</h3>
-                    <pre class="code-block"><code>make -f makefile.osx bitok</code></pre>
+# GUI wallet
+make -f makefile.osx bitok
 
-                    <h3>Build Both</h3>
-                    <pre class="code-block"><code>make -f makefile.osx all</code></pre>
-
-                    <h3>Create .app Bundle</h3>
-                    <pre class="code-block"><code>make -f makefile.osx bundle</code></pre>
-
-                    <h3>CPU Optimization</h3>
-                    <pre class="code-block"><code># Native build for your CPU
-make -f makefile.osx ARCH="$(uname -m)" all
-
-# Universal binary (ARM + Intel)
+# Both
 make -f makefile.osx all
 
-# Intel optimized
-make -f makefile.osx ARCH=x86_64 YESPOWER_ARCH=x86-64-v3 all
+# Create .app Bundle
+make -f makefile.osx bundle</code></pre>
 
-# Apple Silicon only
-make -f makefile.osx ARCH=arm64 all</code></pre>
-
-                    <h3>Install</h3>
-                    <pre class="code-block"><code># Install daemon
+            <h3>Install</h3>
+            <pre><code># Install daemon
 sudo make -f makefile.osx install
 
 # Install GUI to /Applications
 sudo make -f makefile.osx install-gui</code></pre>
 
-                    <h3>Data Directory</h3>
-                    <p><code>~/Library/Application Support/Bitok/</code></p>
-                    <p><strong>IMPORTANT:</strong> Back up <code>wallet.dat</code> regularly!</p>
-                </div>
+            <h3>Data Directory</h3>
+            <p><code>~/Library/Application Support/Bitok/</code></p>
+            <div class="warning-box">
+                <strong>IMPORTANT:</strong> Back up <code>wallet.dat</code> regularly!
+            </div>
+        </div>
 
-                <!-- Windows Build -->
-                <div class="platform-content" id="windows">
-                    <h2>Windows Build (10+ 64-bit)</h2>
+        <div id="windows" class="platform-content">
+            <h2>Windows Build (10+ 64-bit)</h2>
 
-                    <h3>Method 1: Cross-Compile from Ubuntu (Recommended)</h3>
-                    <h4>Install Prerequisites on Ubuntu</h4>
-                    <pre class="code-block"><code>sudo apt-get update
-sudo apt-get install -y \
-    mingw-w64 \
-    g++-mingw-w64-x86-64 \
-    wine64</code></pre>
+            <h3>Method 1: Cross-Compile from Ubuntu</h3>
+            <h4>Install Prerequisites</h4>
+            <pre><code>sudo apt-get update
+sudo apt-get install -y mingw-w64 g++-mingw-w64-x86-64 wine64</code></pre>
 
-                    <h4>Build Windows Binaries</h4>
-                    <pre class="code-block"><code># GUI wallet (main target for Windows)
+            <h4>Build</h4>
+            <pre><code># GUI wallet
 make -f makefile.mingw gui MARCH=x86-64-v3
 x86_64-w64-mingw32-strip bitok.exe</code></pre>
 
-                    <h4>Test with Wine</h4>
-                    <pre class="code-block"><code>wine64 bitokd.exe --help</code></pre>
+            <h3>Method 2: Native Windows Build (MSYS2)</h3>
+            <p>Download from <a href="https://www.msys2.org/" target="_blank">https://www.msys2.org/</a></p>
 
-                    <h3>Method 2: Native Windows Build (MSYS2)</h3>
-                    <h4>Install MSYS2</h4>
-                    <p>Download from <a href="https://www.msys2.org/" target="_blank">https://www.msys2.org/</a></p>
+            <h4>Install Dependencies</h4>
+            <pre><code>pacman -Syu
+pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-boost \
+    mingw-w64-x86_64-openssl mingw-w64-x86_64-db \
+    mingw-w64-x86_64-wxWidgets3.2 make</code></pre>
 
-                    <h4>Install Dependencies (in MSYS2 terminal)</h4>
-                    <pre class="code-block"><code>pacman -Syu
-pacman -S --needed \
-    mingw-w64-x86_64-gcc \
-    mingw-w64-x86_64-boost \
-    mingw-w64-x86_64-openssl \
-    mingw-w64-x86_64-db \
-    mingw-w64-x86_64-wxWidgets3.2 \
-    make</code></pre>
+            <h4>Build</h4>
+            <pre><code>make -f makefile.mingw gui MARCH=x86-64-v3</code></pre>
 
-                    <h4>Build</h4>
-                    <pre class="code-block"><code># GUI wallet (main target)
-make -f makefile.mingw gui MARCH=x86-64-v3
+            <h3>Data Directory</h3>
+            <p><code>%APPDATA%\Bitok\</code></p>
+            <div class="warning-box">
+                <strong>IMPORTANT:</strong> Back up <code>wallet.dat</code> regularly!
+            </div>
+        </div>
+    </div>
 
-# Daemon (optional)
-make -f makefile.mingw daemon MARCH=x86-64-v3</code></pre>
+    <div id="rpc" class="tab-pane">
+        <h1>RPC API Reference</h1>
+        <p>JSON-RPC 1.0 interface for programmatic access. Essential for exchanges, mining pools, block explorers, and integrations.</p>
 
-                    <h3>Running on Windows</h3>
-                    <p>Double-click <code>bitok.exe</code> or run from command prompt.</p>
+        <table class="spec-table">
+            <tr><td>Protocol</td><td>JSON-RPC 1.0</td></tr>
+            <tr><td>Transport</td><td>HTTP POST</td></tr>
+            <tr><td>Default Port</td><td>8332</td></tr>
+            <tr><td>Binding</td><td>127.0.0.1 (localhost only)</td></tr>
+            <tr><td>Authentication</td><td>HTTP Basic Auth</td></tr>
+        </table>
 
-                    <h3>Data Directory</h3>
-                    <p><code>%APPDATA%\Bitok\</code></p>
-                    <p><strong>IMPORTANT:</strong> Back up <code>wallet.dat</code> regularly!</p>
-                </div>
-
-                <div class="callout-box warning">
-                    <strong>Wallet Security</strong>
-                    <p>Back up your <code>wallet.dat</code> file. If you lose it, coins are gone forever. There is no recovery mechanism.</p>
-                </div>
-            </article>
-
-            <!-- RPC API Tab -->
-            <article class="tab-content" id="rpc">
-                <h1>RPC API Reference</h1>
-                <p class="lead">JSON-RPC 1.0 interface for programmatic access. Essential for exchanges, mining pools, block explorers, and integrations.</p>
-
-                <div class="spec-list">
-                    <div class="spec-item">
-                        <dt>Protocol</dt>
-                        <dd>JSON-RPC 1.0</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Transport</dt>
-                        <dd>HTTP POST</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Default Port</dt>
-                        <dd>8332</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Binding</dt>
-                        <dd>127.0.0.1 (localhost only)</dd>
-                    </div>
-                    <div class="spec-item">
-                        <dt>Authentication</dt>
-                        <dd>HTTP Basic Auth</dd>
-                    </div>
-                </div>
-
-                <h2>Connection</h2>
-                <pre class="code-block"><code># Start daemon with RPC enabled
+        <h2>Connection</h2>
+        <pre><code># Start daemon with RPC enabled
 ./bitokd -rpcuser=yourusername -rpcpassword=yourpassword -server
 
 # Execute RPC command
 ./bitokd -rpcuser=yourusername -rpcpassword=yourpassword getinfo</code></pre>
 
-                <h2>Available Commands</h2>
+        <h2>General Commands</h2>
 
-                <div class="rpc-section">
-                    <h3>General Information</h3>
+        <div class="rpc-cmd">
+            <h4>help</h4>
+            <p>Lists all available RPC commands.</p>
+            <pre><code>./bitokd help</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>help</h4>
-                        <p>Lists all available RPC commands.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> String containing list of commands
-                        </div>
-                        <pre class="code-block"><code>./bitokd help</code></pre>
-                    </div>
+        <div class="rpc-cmd">
+            <h4>getinfo</h4>
+            <p>Returns general information about the node and wallet.</p>
+            <div class="rpc-params"><strong>Returns:</strong> balance, blocks, connections, proxy, generate, genproclimit, difficulty</div>
+            <pre><code>./bitokd getinfo</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>getinfo</h4>
-                        <p>Returns general information about the node and wallet.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Object with balance, blocks, connections, proxy, generate, genproclimit, difficulty
-                        </div>
-                        <pre class="code-block"><code>./bitokd getinfo
+        <div class="rpc-cmd">
+            <h4>stop</h4>
+            <p>Gracefully shuts down the Bitok server.</p>
+            <pre><code>./bitokd stop</code></pre>
+        </div>
 
-# Response:
-{
-  "balance": 150.00000000,
-  "blocks": 12450,
-  "connections": 8,
-  "proxy": "",
-  "generate": true,
-  "genproclimit": 4,
-  "difficulty": 1.00000000
-}</code></pre>
-                    </div>
+        <h2>Blockchain Commands</h2>
 
-                    <div class="rpc-cmd">
-                        <h4>stop</h4>
-                        <p>Gracefully shuts down the Bitok server.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> String confirmation message
-                        </div>
-                        <pre class="code-block"><code>./bitokd stop</code></pre>
-                    </div>
-                </div>
+        <div class="rpc-cmd">
+            <h4>getblockcount</h4>
+            <p>Returns the total number of blocks in the longest block chain.</p>
+            <pre><code>./bitokd getblockcount</code></pre>
+        </div>
 
-                <div class="rpc-section">
-                    <h3>Blockchain Operations</h3>
+        <div class="rpc-cmd">
+            <h4>getblockhash &lt;index&gt;</h4>
+            <p>Returns the hash of the block at a specific height.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> index (number)</div>
+            <pre><code>./bitokd getblockhash 0</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>getblockcount</h4>
-                        <p>Returns the total number of blocks in the longest block chain.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Number (block count)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getblockcount</code></pre>
-                    </div>
+        <div class="rpc-cmd">
+            <h4>getblock &lt;hash&gt;</h4>
+            <p>Returns detailed information about a block given its hash.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> hash (string)</div>
+            <pre><code>./bitokd getblock "000007a5d9c7..."</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>getblocknumber</h4>
-                        <p>Returns the block number of the latest block (0-indexed height).</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Number (block height)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getblocknumber</code></pre>
-                    </div>
+        <div class="rpc-cmd">
+            <h4>getdifficulty</h4>
+            <p>Returns the current proof-of-work difficulty.</p>
+            <pre><code>./bitokd getdifficulty</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>getbestblockhash</h4>
-                        <p>Returns the hash of the best (tip) block in the longest chain.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> String (block hash)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getbestblockhash</code></pre>
-                    </div>
+        <h2>Wallet Commands</h2>
 
-                    <div class="rpc-cmd">
-                        <h4>getblockhash &lt;index&gt;</h4>
-                        <p>Returns the hash of the block at a specific height.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> index (number) - Block height<br>
-                            <strong>Returns:</strong> String (block hash)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getblockhash 0</code></pre>
-                    </div>
+        <div class="rpc-cmd">
+            <h4>getbalance</h4>
+            <p>Returns the total available balance in the wallet.</p>
+            <pre><code>./bitokd getbalance</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>getblock &lt;hash&gt;</h4>
-                        <p>Returns detailed information about a block given its hash.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> hash (string) - Block hash<br>
-                            <strong>Returns:</strong> Object with hash, version, previousblockhash, merkleroot, time, bits, nonce, height, tx[], nextblockhash
-                        </div>
-                        <pre class="code-block"><code>./bitokd getblock "000007a5d9c7..."</code></pre>
-                    </div>
-
-                    <div class="rpc-cmd">
-                        <h4>getdifficulty</h4>
-                        <p>Returns the current proof-of-work difficulty.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Number (difficulty value)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getdifficulty</code></pre>
-                    </div>
-                </div>
-
-                <div class="rpc-section">
-                    <h3>Wallet Operations</h3>
-
-                    <div class="rpc-cmd">
-                        <h4>getbalance</h4>
-                        <p>Returns the total available balance in the wallet.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Number (balance in BITOK)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getbalance</code></pre>
-                    </div>
-
-                    <div class="rpc-cmd">
-                        <h4>getnewaddress [label]</h4>
-                        <p>Generates a new Bitok address for receiving payments.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> label (string, optional) - Label for the address<br>
-                            <strong>Returns:</strong> String (new Bitok address)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getnewaddress
+        <div class="rpc-cmd">
+            <h4>getnewaddress [label]</h4>
+            <p>Generates a new Bitok address for receiving payments.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> label (string, optional)</div>
+            <pre><code>./bitokd getnewaddress
 ./bitokd getnewaddress "customer123"</code></pre>
-                    </div>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>sendtoaddress &lt;address&gt; &lt;amount&gt;</h4>
-                        <p>Sends BITOK to a specified address.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> address (string), amount (number)<br>
-                            <strong>Returns:</strong> String (transaction ID)
-                        </div>
-                        <pre class="code-block"><code>./bitokd sendtoaddress "1A1zP1eP5..." 10.50</code></pre>
-                    </div>
-                </div>
+        <div class="rpc-cmd">
+            <h4>sendtoaddress &lt;address&gt; &lt;amount&gt;</h4>
+            <p>Sends BITOK to a specified address.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> address (string), amount (number)</div>
+            <pre><code>./bitokd sendtoaddress "1A1zP1eP5..." 10.50</code></pre>
+        </div>
 
-                <div class="rpc-section">
-                    <h3>Mining Operations</h3>
+        <h2>Mining Commands</h2>
 
-                    <div class="rpc-cmd">
-                        <h4>getgenerate</h4>
-                        <p>Returns the current mining status.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> None<br>
-                            <strong>Returns:</strong> Boolean (true if mining)
-                        </div>
-                        <pre class="code-block"><code>./bitokd getgenerate</code></pre>
-                    </div>
+        <div class="rpc-cmd">
+            <h4>getgenerate</h4>
+            <p>Returns the current mining status.</p>
+            <pre><code>./bitokd getgenerate</code></pre>
+        </div>
 
-                    <div class="rpc-cmd">
-                        <h4>setgenerate &lt;generate&gt; [genproclimit]</h4>
-                        <p>Enables or disables mining.</p>
-                        <div class="rpc-params">
-                            <strong>Parameters:</strong> generate (boolean), genproclimit (number, optional, -1=all cores)<br>
-                            <strong>Returns:</strong> null
-                        </div>
-                        <pre class="code-block"><code># Enable mining with 4 cores
+        <div class="rpc-cmd">
+            <h4>setgenerate &lt;generate&gt; [genproclimit]</h4>
+            <p>Enables or disables mining.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> generate (boolean), genproclimit (number, optional)</div>
+            <pre><code># Enable mining with 4 cores
 ./bitokd setgenerate true 4
-
-# Enable mining with all cores
-./bitokd setgenerate true
 
 # Disable mining
 ./bitokd setgenerate false</code></pre>
-                    </div>
-                </div>
+        </div>
 
-                <h2>Python Example</h2>
-                <pre class="code-block"><code>import requests
+        <h2>Python Example</h2>
+        <pre><code>import requests
 import json
 
 class BitokRPC:
@@ -572,49 +723,37 @@ rpc = BitokRPC('yourusername', 'yourpassword')
 info = rpc.call('getinfo')
 print(f"Balance: {info['balance']} BITOK")
 print(f"Blocks: {info['blocks']}")</code></pre>
+    </div>
 
-                <h2>cURL Example</h2>
-                <pre class="code-block"><code>curl --user yourusername:yourpassword \
-     --data-binary '{"jsonrpc":"1.0","id":"1","method":"getinfo","params":[]}' \
-     -H 'content-type: application/json;' \
-     http://127.0.0.1:8332/</code></pre>
-            </article>
+    <div id="bitokpow" class="tab-pane">
+        <h1>BitokPOW - Yespower Algorithm</h1>
+        <p><strong>CPU-optimized, GPU/ASIC-resistant mining as Satoshi intended.</strong></p>
 
-            <!-- BitokPOW Tab -->
-            <article class="tab-content" id="bitokpow">
-                <h1>BitokPOW - Yespower Algorithm</h1>
-                <p class="lead">CPU-optimized, GPU/ASIC-resistant mining as Satoshi intended.</p>
+        <h2>Overview</h2>
+        <p>Bitok replaces Bitcoin's SHA-256 proof-of-work with Yespower 1.0, a memory-hard, CPU-optimized hashing algorithm designed to resist GPU and ASIC acceleration.</p>
 
-                <h2>Overview</h2>
-                <p>Bitok replaces Bitcoin's SHA-256 proof-of-work with Yespower 1.0, a memory-hard, CPU-optimized hashing algorithm designed to resist GPU and ASIC acceleration.</p>
+        <div class="quote-box">
+            <p>"We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network."</p>
+            <p><strong>- Satoshi Nakamoto, December 12, 2010</strong></p>
+        </div>
 
-                <div class="quote-box">
-                    <p><em>"We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network."</em></p>
-                    <p><strong>- Satoshi Nakamoto, December 12, 2010</strong></p>
-                </div>
+        <h2>What Changed</h2>
+        <p>The entire change is swapping one hash function for another. Everything else - difficulty adjustment, block validation, consensus rules - remains exactly as Satoshi wrote it.</p>
 
-                <h2>What Changed</h2>
-                <p>The entire change is swapping one hash function for another. Everything else - difficulty adjustment, block validation, consensus rules - remains exactly as Satoshi wrote it.</p>
-
-                <div class="compare-grid">
-                    <div class="compare-item">
-                        <h4>Bitcoin (SHA-256)</h4>
-                        <pre class="code-block"><code>uint256 hash = block.GetHash();
+        <h3>Bitcoin (SHA-256)</h3>
+        <pre><code>uint256 hash = block.GetHash();
 if (hash <= target) {
     /* block found */
 }</code></pre>
-                    </div>
-                    <div class="compare-item">
-                        <h4>Bitok (Yespower)</h4>
-                        <pre class="code-block"><code>uint256 hash = YespowerHashBlock(&block, 80);
+
+        <h3>Bitok (Yespower)</h3>
+        <pre><code>uint256 hash = YespowerHashBlock(&block, 80);
 if (hash <= target) {
     /* block found */
 }</code></pre>
-                    </div>
-                </div>
 
-                <h2>Yespower Parameters</h2>
-                <pre class="code-block"><code>yespower_params_t {
+        <h2>Yespower Parameters</h2>
+        <pre><code>yespower_params_t {
     .version = YESPOWER_1_0,
     .N = 2048,              // Memory cost (~128KB)
     .r = 32,                // Block size parameter
@@ -622,959 +761,176 @@ if (hash <= target) {
     .perslen = 8
 }</code></pre>
 
-                <h2>Design Goals</h2>
-                <div class="comparison-table">
-                    <div class="comparison-row header">
-                        <div>Goal</div>
-                        <div>SHA-256</div>
-                        <div>Yespower</div>
-                    </div>
-                    <div class="comparison-row">
-                        <div>CPU-friendly</div>
-                        <div><span class="badge no">No</span></div>
-                        <div><span class="badge yes">Yes</span></div>
-                    </div>
-                    <div class="comparison-row">
-                        <div>GPU-resistant</div>
-                        <div><span class="badge no">No</span></div>
-                        <div><span class="badge yes">Yes</span></div>
-                    </div>
-                    <div class="comparison-row">
-                        <div>ASIC-resistant</div>
-                        <div><span class="badge no">No</span></div>
-                        <div><span class="badge yes">Yes</span></div>
-                    </div>
-                    <div class="comparison-row">
-                        <div>Laptop mining viable</div>
-                        <div><span class="badge no">No</span></div>
-                        <div><span class="badge yes">Yes</span></div>
-                    </div>
-                    <div class="comparison-row">
-                        <div>Memory-hard</div>
-                        <div><span class="badge no">No</span></div>
-                        <div><span class="badge yes">Yes (~128KB/hash)</span></div>
-                    </div>
-                </div>
+        <h2>Design Goals</h2>
+        <table class="comparison-table spec-table">
+            <tr>
+                <td>Goal</td>
+                <td>SHA-256</td>
+                <td>Yespower</td>
+            </tr>
+            <tr>
+                <td>CPU-friendly</td>
+                <td><span class="badge-no">No</span></td>
+                <td><span class="badge-yes">Yes</span></td>
+            </tr>
+            <tr>
+                <td>GPU-resistant</td>
+                <td><span class="badge-no">No</span></td>
+                <td><span class="badge-yes">Yes</span></td>
+            </tr>
+            <tr>
+                <td>ASIC-resistant</td>
+                <td><span class="badge-no">No</span></td>
+                <td><span class="badge-yes">Yes</span></td>
+            </tr>
+            <tr>
+                <td>Laptop mining viable</td>
+                <td><span class="badge-no">No</span></td>
+                <td><span class="badge-yes">Yes</span></td>
+            </tr>
+            <tr>
+                <td>Memory-hard</td>
+                <td><span class="badge-no">No</span></td>
+                <td><span class="badge-yes">Yes</span></td>
+            </tr>
+        </table>
 
-                <h2>Key Features</h2>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <h4>Sequential Memory Initialization</h4>
-                        <p>Must fill 128KB before starting. Cannot be parallelized. Cache-friendly for CPUs, cache-hostile for GPUs.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>Random Memory Access</h4>
-                        <p>Pseudo-random reads from 128KB buffer. Memory latency becomes the bottleneck. GPUs have poor random memory access.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>SIMD Optimizations</h4>
-                        <p>Uses SSE2, AVX, AVX2, and AVX512 instructions automatically. Modern CPUs benefit greatly, GPUs don't have equivalent instructions.</p>
-                    </div>
-                    <div class="feature-card">
-                        <h4>Domain Separation</h4>
-                        <p>"BitokPoW" personalization prevents cross-chain hash reuse and ensures uniqueness.</p>
-                    </div>
-                </div>
+        <h2>Key Features</h2>
+        <ul>
+            <li><strong>Sequential Memory Initialization:</strong> Must fill 128KB before starting. Cannot be parallelized.</li>
+            <li><strong>Random Memory Access:</strong> Pseudo-random reads from 128KB buffer. Memory latency becomes the bottleneck.</li>
+            <li><strong>SIMD Optimizations:</strong> Uses SSE2, AVX, AVX2, and AVX512 instructions automatically.</li>
+            <li><strong>Domain Separation:</strong> "BitokPoW" personalization prevents cross-chain hash reuse.</li>
+        </ul>
 
-                <h2>Why GPUs Can't Win</h2>
-                <ul class="check-list">
-                    <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns. Yespower's 128KB per hash with pseudo-random access exploits this weakness.</li>
-                    <li><strong>SIMD Instructions:</strong> Modern x86 CPUs have AVX2/AVX512 which Yespower leverages. GPU SIMD architectures don't map efficiently to Yespower operations.</li>
-                    <li><strong>Power Efficiency:</strong> A CPU uses 50-100W for reasonable hashrate. A GPU uses 250-350W for only 2-3x improvement. Cost per hash favors CPUs.</li>
-                </ul>
+        <h2>Why GPUs Can't Win</h2>
+        <ul>
+            <li><strong>Memory Bandwidth:</strong> GPUs have high bandwidth but poor latency for random access patterns.</li>
+            <li><strong>SIMD Instructions:</strong> Modern x86 CPUs have AVX2/AVX512 which Yespower leverages.</li>
+            <li><strong>Power Efficiency:</strong> A CPU uses 50-100W for reasonable hashrate. A GPU uses 250-350W for only 2-3x improvement.</li>
+        </ul>
 
-                <h2>Security Analysis</h2>
-                <p><strong>Preimage Attacks:</strong> Finding hash collision requires 2^256 operations. Both SHA-256 and Yespower are resistant.</p>
-                <p><strong>GPU Mining Attacks:</strong> SHA-256 allows 100-1000x speedup with GPUs. Yespower reduces this to 2-3x while making GPUs uneconomical due to power costs.</p>
-                <p><strong>ASIC Mining Attacks:</strong> SHA-256 ASICs provide 100,000x speedup over CPUs. Yespower's memory-hard design makes ASICs impractical (memory cost dominates chip design).</p>
-                <p><strong>Memory-Hardness Attacks:</strong> Yespower requires 128KB per hash. Attempts to reduce memory usage result in exponentially slower performance.</p>
+        <h2>Conclusion</h2>
+        <p>Yespower proof-of-work implements Satoshi's vision of accessible CPU mining. Anyone with a laptop can participate in securing the network without specialized hardware.</p>
+        <p><strong>This is not innovation. This is restoration.</strong></p>
+    </div>
 
-                <h2>Conclusion</h2>
-                <p>Yespower proof-of-work implements Satoshi's vision of accessible CPU mining. Anyone with a laptop can participate in securing the network without specialized hardware.</p>
-                <p><strong>This is not innovation. This is restoration.</strong></p>
-            </article>
+    <div id="manifesto" class="tab-pane">
+        <h1>Bitok Manifesto</h1>
+        <p><strong>An experiment in what Bitcoin would look like if Satoshi's vision of CPU mining had held up.</strong></p>
 
-            <!-- Manifesto Tab -->
-            <article class="tab-content" id="manifesto">
-                <h1>Bitok Manifesto</h1>
-                <p class="lead">An experiment in what Bitcoin would look like if Satoshi's vision of CPU mining had held up.</p>
+        <h2>What Happened to Bitcoin</h2>
+        <p>Bitcoin worked in 2010. You downloaded the software, clicked "Generate Coins," and your laptop found blocks. The network grew because participation was free and easy.</p>
+        <p>Then GPUs happened. Then mining pools. Then FPGAs, ASICs. The barrier to entry went from "own a computer" to "have access to cheap electricity and specialized hardware."</p>
+        <p>This was not a conspiracy. It was economics. SHA-256 happens to be very fast on parallel hardware. Someone was always going to optimize it.</p>
 
-                <h2>What Happened to Bitcoin</h2>
-                <p>Bitcoin worked in 2010. You downloaded the software, clicked "Generate Coins," and your laptop found blocks. The network grew because participation was free and easy.</p>
-                <p>Then GPUs happened. Then mining pools. Then FPGAs, ASICs. The barrier to entry went from "own a computer" to "have access to cheap electricity and specialized hardware."</p>
-                <p>This was not a conspiracy. It was economics. SHA-256 happens to be very fast on parallel hardware. Someone was always going to optimize it.</p>
+        <h2>What Satoshi Said About It</h2>
+        <div class="quote-box">
+            <p>"We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network. It's much easier to get new users up to speed if they don't have to worry about GPU drivers and compatibility. It's nice how anyone with just a CPU can compete fairly equally right now."</p>
+            <p><strong>- Satoshi Nakamoto, December 12, 2010</strong></p>
+        </div>
 
-                <h2>What Satoshi Said About It</h2>
-                <div class="quote-box">
-                    <p><em>"We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network. It's much easier to get new users up to speed if they don't have to worry about GPU drivers and compatibility. It's nice how anyone with just a CPU can compete fairly equally right now."</em></p>
-                    <p><strong>- Satoshi Nakamoto, December 12, 2010</strong></p>
-                </div>
+        <div class="quote-box">
+            <p>"GPUs are much less evenly distributed, so the generated coins only go towards rewarding 20% of the people for joining the network instead of 100%."</p>
+            <p><strong>- To Laszlo Hanyecz (the pizza guy)</strong></p>
+        </div>
 
-                <div class="quote-box">
-                    <p><em>"GPUs are much less evenly distributed, so the generated coins only go towards rewarding 20% of the people for joining the network instead of 100%."</em></p>
-                    <p><strong>- To Laszlo Hanyecz (the pizza guy)</strong></p>
-                </div>
+        <p>He knew. He just didn't have a solution at the time.</p>
 
-                <div class="quote-box">
-                    <p><em>"It's inevitable that GPU compute clusters will eventually hog all the generated coins, but I don't want to hasten that day."</em></p>
-                    <p><strong>- Satoshi Nakamoto</strong></p>
-                </div>
+        <h2>What Bitok Changes</h2>
+        <ol>
+            <li><strong>Yespower instead of SHA-256</strong> - GPU miners don't get 1000x advantage anymore. More like 2x, if that.</li>
+            <li><strong>New genesis block</strong> - Separate network. No confusion with BTC. No replay attacks. Clean slate.</li>
+            <li><strong>Modern build system</strong> - Compiles on Ubuntu 24.04, macOS, Windows.</li>
+        </ol>
 
-                <p>He knew. He just didn't have a solution at the time.</p>
+        <p>Everything else is exactly as Satoshi left it. Same 21 million cap. Same 10 minute blocks. Same halving schedule. Same transaction format. Same script system. Same wallet behavior.</p>
 
-                <h2>What Bitok Changes</h2>
-                <div class="change-list">
-                    <div class="change-item">
-                        <h4>1. Yespower instead of SHA-256</h4>
-                        <p>GPU miners don't get 1000x advantage anymore. More like 2x, if that. Not worth the driver headaches.</p>
-                    </div>
-                    <div class="change-item">
-                        <h4>2. New genesis block</h4>
-                        <p>Separate network. No confusion with BTC. No replay attacks. Clean slate.</p>
-                    </div>
-                    <div class="change-item">
-                        <h4>3. Modern build system</h4>
-                        <p>Compiles on Ubuntu 24.04, macOS, Windows. The original needed patches for anything newer than Ubuntu 10.04.</p>
-                    </div>
-                </div>
+        <h2>What Bitok Does NOT Change</h2>
+        <ul>
+            <li>No new opcodes</li>
+            <li>No SegWit</li>
+            <li>No block size increase</li>
+            <li>No layer 2</li>
+            <li>No BIPs</li>
+            <li>No governance</li>
+            <li>No foundation</li>
+            <li>No roadmap</li>
+        </ul>
+        <p><strong>The protocol is frozen at December 2010.</strong></p>
 
-                <p>Everything else is exactly as Satoshi left it. Same 21 million cap. Same 10 minute blocks. Same halving schedule. Same transaction format. Same script system. Same wallet behavior.</p>
+        <h2>Why</h2>
+        <p>I wanted to mine Bitcoin with my laptop. Not buy ASICs. Not join pools. Not pay for cloud hashrate.</p>
+        <p>I couldn't, because of physics and economics.</p>
+        <p>So I made this instead.</p>
 
-                <h2>What Bitok Does NOT Change</h2>
-                <ul class="no-list">
-                    <li>No new opcodes</li>
-                    <li>No SegWit</li>
-                    <li>No block size increase</li>
-                    <li>No layer 2</li>
-                    <li>No BIPs</li>
-                    <li>No governance</li>
-                    <li>No foundation</li>
-                    <li>No roadmap</li>
-                    <li>No improvement proposals</li>
-                </ul>
-                <p><strong>The protocol is frozen at December 2010.</strong></p>
+        <h2>The Philosophy Part</h2>
+        <p>Bitcoin's whitepaper is 9 pages. Most of it is math. Satoshi didn't write manifestos. He wrote code that worked and let people figure out what it meant.</p>
+        <p>The code said: anyone can transact. Anyone can mine. No intermediaries. No permission.</p>
+        <p>Somewhere along the way, "anyone can mine" became "anyone with industrial-scale infrastructure can mine." That happened gradually and probably inevitably.</p>
+        <p><strong>Bitok is an experiment in what Bitcoin would look like if the mining algorithm had been different from the start.</strong></p>
+        <p>Nothing more profound than that.</p>
 
-                <h2>Why</h2>
-                <p>I wanted to mine Bitcoin with my laptop. Not buy ASICs. Not join pools. Not pay for cloud hashrate.</p>
-                <p>I couldn't, because of physics and economics.</p>
-                <p>So I made this instead.</p>
+        <h2>Will This Succeed</h2>
+        <p>Define "succeed."</p>
+        <ul>
+            <li>If you mean: will the software compile and run? <strong>Yes.</strong> I tested it.</li>
+            <li>If you mean: will people use it? <strong>Some might. Most won't.</strong> That's fine.</li>
+            <li>If you mean: will it be worth money? <strong>I genuinely don't know.</strong> Markets are weird.</li>
+            <li>If you mean: will it stay decentralized? <strong>That depends on whether enough people run nodes.</strong></li>
+        </ul>
 
-                <h2>The Philosophy Part</h2>
-                <p>Bitcoin's whitepaper is 9 pages. Most of it is math. Satoshi didn't write manifestos. He wrote code that worked and let people figure out what it meant.</p>
-                <p>The code said: anyone can transact. Anyone can mine. No intermediaries. No permission.</p>
-                <p>Somewhere along the way, "anyone can mine" became "anyone with industrial-scale infrastructure can mine." That happened gradually and probably inevitably.</p>
-                <p><strong>Bitok is an experiment in what Bitcoin would look like if the mining algorithm had been different from the start.</strong></p>
-                <p>Nothing more profound than that.</p>
+        <h2>No Promises</h2>
+        <p>I'm not going to tell you this will change the world. I'm not going to tell you to buy it. I'm not going to tell you anything you want to hear just because it sounds good.</p>
+        <p><strong>Here's software. It does what it says. Run it or don't.</strong></p>
 
-                <h2>Who Is Tom Elvis Jedusor</h2>
-                <p>An anagram. A Harry Potter reference. A pseudonym.</p>
-                <p>Why does it matter?</p>
+        <div class="info-box">
+            <p><em>"Writing a description for this thing is bloody hard. There's nothing to quite relate it to."</em></p>
+            <p><strong>- Satoshi Nakamoto, January 2009</strong></p>
+            <p><strong>Still true.</strong></p>
+        </div>
 
-                <h2>Will This Succeed</h2>
-                <p>Define "succeed."</p>
-                <ul>
-                    <li>If you mean: will the software compile and run? <strong>Yes.</strong> I tested it.</li>
-                    <li>If you mean: will people use it? <strong>Some might. Most won't.</strong> That's fine.</li>
-                    <li>If you mean: will it be worth money? <strong>I genuinely don't know.</strong> Probably not much. Markets are weird and I don't predict them.</li>
-                    <li>If you mean: will it stay decentralized? <strong>That depends on whether enough people run nodes.</strong> I can't control that. Neither can you. That's the point.</li>
-                </ul>
+        <h2>Security Fixes Included</h2>
+        <p>All security fixes from Bitcoin v0.3.19 are present:</p>
+        <ul>
+            <li>Value overflow protection (the 184 billion coin bug)</li>
+            <li>Blockchain checkpoints</li>
+            <li>DoS limits</li>
+            <li>IsStandard() transaction filtering</li>
+        </ul>
+        <p>Bitcoin forked once in August 2010 to fix the overflow bug. <strong>Bitok launches with all fixes in place. No forks needed.</strong></p>
 
-                <h2>No Promises</h2>
-                <p>I'm not going to tell you this will change the world. I'm not going to tell you to buy it. I'm not going to tell you anything you want to hear just because it sounds good.</p>
-                <p><strong>Here's software. It does what it says. Run it or don't.</strong></p>
-
-                <div class="callout-box info">
-                    <p><em>"Writing a description for this thing is bloody hard. There's nothing to quite relate it to."</em></p>
-                    <p><strong>- Satoshi Nakamoto, January 2009</strong></p>
-                    <p style="margin-top: 15px;"><strong>Still true.</strong></p>
-                </div>
-
-                <h2>Security Fixes Included</h2>
-                <p>All security fixes from Bitcoin v0.3.19 are present:</p>
-                <ul class="check-list">
-                    <li>Value overflow protection (the 184 billion coin bug)</li>
-                    <li>Blockchain checkpoints</li>
-                    <li>DoS limits</li>
-                    <li>IsStandard() transaction filtering</li>
-                </ul>
-                <p>Bitcoin forked once in August 2010 to fix the overflow bug. <strong>Bitok launches with all fixes in place. No forks needed.</strong></p>
-
-                <div class="final-statement">
-                    <h2>Run the code.</h2>
-                    <p>That is the manifesto.</p>
-                </div>
-            </article>
-        </main>
+        <div style="background: #f5f5f5; border: 2px solid #c59000; padding: 20px; margin: 25px 0; text-align: center;">
+            <h2 style="margin: 0 0 10px 0; color: #c59000;">Run the code.</h2>
+            <p style="margin: 0; font-size: 14px; color: #333;">That is the manifesto.</p>
+        </div>
     </div>
 </div>
 
-<style>
-:root {
-    --primary: #c59000;
-    --primary-light: #e6a800;
-    --primary-dark: #a47a00;
-    --bg-page: #f8f9fa;
-    --bg-white: #ffffff;
-    --bg-light: #f5f5f5;
-    --border: #dee2e6;
-    --text-dark: #212529;
-    --text-medium: #6c757d;
-    --text-light: #adb5bd;
-    --code-bg: #2d2d2d;
-    --code-text: #f8f8f2;
-    --success: #28a745;
-    --info: #17a2b8;
-    --warning: #ffc107;
-    --danger: #dc3545;
-    --shadow: rgba(0, 0, 0, 0.1);
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    background: var(--bg-page);
-    overflow-x: hidden;
-}
-
-.docs-container {
-    width: 100%;
-    max-width: 100%;
-    padding: 0;
-    margin: 0;
-}
-
-/* Mobile Navigation */
-.mobile-nav-wrapper {
-    display: none;
-    background: var(--bg-white);
-    border-bottom: 2px solid var(--border);
-    margin-bottom: 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.mobile-nav-toggle {
-    width: 100%;
-    padding: 15px 20px;
-    background: var(--bg-white);
-    border: none;
-    text-align: left;
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-dark);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.hamburger-icon {
-    font-size: 24px;
-    line-height: 1;
-}
-
-.mobile-nav-dropdown {
-    display: none;
-    background: var(--bg-light);
-    border-top: 1px solid var(--border);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
-
-.mobile-nav-dropdown.active {
-    display: block;
-    max-height: 400px;
-}
-
-.mobile-nav-link {
-    display: block;
-    padding: 12px 20px;
-    color: var(--text-dark);
-    text-decoration: none;
-    border-bottom: 1px solid var(--border);
-    font-size: 15px;
-    transition: background 0.2s;
-}
-
-.mobile-nav-link:hover {
-    background: var(--bg-white);
-    text-decoration: none;
-}
-
-.mobile-nav-link.active {
-    background: var(--primary);
-    color: white;
-    font-weight: 500;
-}
-
-/* Desktop Layout */
-.docs-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 30px;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* Desktop Sidebar */
-.docs-sidebar {
-    position: sticky;
-    top: 20px;
-    height: fit-content;
-    background: var(--bg-white);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px var(--shadow);
-}
-
-.docs-sidebar h3 {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    color: var(--text-dark);
-    border-bottom: 2px solid var(--primary);
-    padding-bottom: 12px;
-}
-
-.docs-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.nav-link {
-    display: block;
-    padding: 12px 15px;
-    color: var(--text-dark);
-    text-decoration: none;
-    font-size: 15px;
-    border-radius: 6px;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.nav-link:hover {
-    background: var(--bg-light);
-    border-left-color: var(--primary);
-    text-decoration: none;
-    padding-left: 18px;
-}
-
-.nav-link.active {
-    background: var(--primary);
-    color: white;
-    font-weight: 500;
-    border-left-color: var(--primary-dark);
-}
-
-/* Main Content */
-.docs-content {
-    background: var(--bg-white);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 40px;
-    box-shadow: 0 2px 4px var(--shadow);
-    min-height: 80vh;
-}
-
-.tab-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Typography */
-h1 {
-    font-size: 32px;
-    color: var(--text-dark);
-    margin: 0 0 20px 0;
-    border-bottom: 3px solid var(--primary);
-    padding-bottom: 15px;
-    line-height: 1.3;
-}
-
-h2 {
-    font-size: 26px;
-    color: var(--text-dark);
-    margin: 35px 0 20px 0;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-}
-
-h3 {
-    font-size: 20px;
-    color: var(--text-dark);
-    margin: 25px 0 15px 0;
-}
-
-h4 {
-    font-size: 17px;
-    color: var(--text-dark);
-    margin: 20px 0 10px 0;
-    font-weight: 600;
-}
-
-.lead {
-    font-size: 18px;
-    color: var(--text-medium);
-    line-height: 1.7;
-    margin-bottom: 25px;
-}
-
-p {
-    line-height: 1.7;
-    margin-bottom: 15px;
-    color: var(--text-dark);
-}
-
-/* Code Blocks */
-.code-block {
-    background: var(--code-bg);
-    border-radius: 6px;
-    padding: 20px;
-    margin: 20px 0;
-    overflow-x: auto;
-    box-shadow: 0 2px 4px var(--shadow);
-}
-
-.code-block code {
-    color: var(--code-text);
-    font-family: 'Courier New', Consolas, monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    display: block;
-    white-space: pre;
-}
-
-code {
-    background: var(--bg-light);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: 'Courier New', Consolas, monospace;
-    font-size: 14px;
-    color: var(--danger);
-}
-
-/* Lists */
-ul, ol {
-    line-height: 1.8;
-    margin: 15px 0;
-    padding-left: 30px;
-}
-
-.check-list {
-    list-style: none;
-    padding-left: 0;
-}
-
-.check-list li {
-    padding-left: 30px;
-    position: relative;
-    margin-bottom: 10px;
-}
-
-.check-list li::before {
-    content: '✓';
-    position: absolute;
-    left: 0;
-    color: var(--success);
-    font-weight: bold;
-    font-size: 18px;
-}
-
-.no-list {
-    list-style: none;
-    padding-left: 0;
-}
-
-.no-list li {
-    padding-left: 30px;
-    position: relative;
-    margin-bottom: 10px;
-}
-
-.no-list li::before {
-    content: '✗';
-    position: absolute;
-    left: 0;
-    color: var(--text-light);
-    font-weight: bold;
-    font-size: 18px;
-}
-
-/* Callout Boxes */
-.info-box,
-.callout-box {
-    padding: 20px;
-    margin: 25px 0;
-    border-radius: 6px;
-    border-left: 4px solid;
-}
-
-.info-box,
-.callout-box.info {
-    background: #e7f3ff;
-    border-color: var(--info);
-}
-
-.callout-box.warning {
-    background: #fff3cd;
-    border-color: var(--warning);
-}
-
-.callout-box.success {
-    background: #d4edda;
-    border-color: var(--success);
-}
-
-.info-box h3 {
-    margin-top: 0;
-    color: var(--text-dark);
-    font-size: 18px;
-}
-
-.callout-box strong {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 16px;
-}
-
-/* Quote Boxes */
-.quote-box {
-    background: #f9f9f9;
-    border-left: 4px solid var(--primary);
-    padding: 20px 25px;
-    margin: 25px 0;
-    border-radius: 4px;
-    font-style: italic;
-}
-
-.quote-box p {
-    margin-bottom: 10px;
-}
-
-.quote-box strong {
-    font-style: normal;
-    color: var(--primary-dark);
-}
-
-/* Spec List (Responsive Table Alternative) */
-.spec-list {
-    margin: 25px 0;
-}
-
-.spec-item {
-    display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 15px;
-    padding: 15px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-light);
-    margin-bottom: 2px;
-}
-
-.spec-item dt {
-    font-weight: 600;
-    color: var(--text-dark);
-}
-
-.spec-item dd {
-    margin: 0;
-    color: var(--text-medium);
-}
-
-/* Feature Grid */
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin: 25px 0;
-}
-
-.feature-card {
-    background: var(--bg-light);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 20px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.feature-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow);
-}
-
-.feature-card h4 {
-    margin-top: 0;
-    color: var(--text-dark);
-}
-
-/* Platform Tabs */
-.platform-tabs {
-    display: flex;
-    gap: 10px;
-    margin: 25px 0;
-    flex-wrap: wrap;
-}
-
-.platform-tab {
-    padding: 12px 24px;
-    background: var(--bg-light);
-    border: 2px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 500;
-    transition: all 0.2s;
-    color: var(--text-dark);
-}
-
-.platform-tab:hover {
-    background: var(--bg-white);
-    border-color: var(--primary);
-}
-
-.platform-tab.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-}
-
-.platform-content {
-    display: none;
-    animation: fadeIn 0.3s ease;
-}
-
-.platform-content.active {
-    display: block;
-}
-
-/* RPC Commands */
-.rpc-section {
-    margin: 35px 0;
-}
-
-.rpc-cmd {
-    background: var(--bg-light);
-    border-left: 4px solid var(--primary);
-    border-radius: 6px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-.rpc-cmd h4 {
-    margin: 0 0 10px 0;
-    color: var(--text-dark);
-    font-family: 'Courier New', monospace;
-    font-size: 16px;
-}
-
-.rpc-params {
-    margin: 15px 0;
-    padding: 12px;
-    background: var(--bg-white);
-    border-radius: 4px;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-/* Comparison Tables */
-.comparison-table {
-    margin: 25px 0;
-}
-
-.comparison-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 15px;
-    padding: 15px;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-}
-
-.comparison-row.header {
-    background: var(--bg-light);
-    font-weight: 600;
-    border-bottom: 2px solid var(--border);
-}
-
-.comparison-row > div {
-    padding: 5px;
-}
-
-.badge {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 12px;
-    font-weight: 500;
-    font-size: 13px;
-    white-space: nowrap;
-}
-
-.badge.yes {
-    background: #d4edda;
-    color: var(--success);
-}
-
-.badge.no {
-    background: #f8d7da;
-    color: var(--danger);
-}
-
-/* Compare Grid */
-.compare-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin: 25px 0;
-}
-
-.compare-item h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: var(--text-dark);
-}
-
-/* Change List */
-.change-list {
-    margin: 25px 0;
-}
-
-.change-item {
-    background: var(--bg-light);
-    border-left: 4px solid var(--primary);
-    border-radius: 6px;
-    padding: 20px;
-    margin: 15px 0;
-}
-
-.change-item h4 {
-    margin: 0 0 10px 0;
-    color: var(--text-dark);
-}
-
-/* Final Statement */
-.final-statement {
-    text-align: center;
-    padding: 40px;
-    margin: 40px 0;
-    background: var(--bg-light);
-    border: 2px solid var(--primary);
-    border-radius: 8px;
-}
-
-.final-statement h2 {
-    font-size: 28px;
-    border: none;
-    margin: 0 0 15px 0;
-    color: var(--primary-dark);
-}
-
-/* Tablet Styles */
-@media (max-width: 1024px) {
-    .docs-layout {
-        grid-template-columns: 1fr;
-        padding: 15px;
-    }
-
-    .docs-sidebar {
-        display: none;
-    }
-
-    .mobile-nav-wrapper {
-        display: block;
-    }
-
-    .docs-content {
-        padding: 30px 25px;
-    }
-
-    h1 {
-        font-size: 28px;
-    }
-
-    h2 {
-        font-size: 22px;
-    }
-
-    .feature-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Mobile Styles */
-@media (max-width: 640px) {
-    .docs-content {
-        padding: 20px 15px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    h1 {
-        font-size: 24px;
-    }
-
-    h2 {
-        font-size: 20px;
-    }
-
-    h3 {
-        font-size: 18px;
-    }
-
-    .lead {
-        font-size: 16px;
-    }
-
-    .code-block {
-        padding: 15px;
-        border-radius: 4px;
-    }
-
-    .code-block code {
-        font-size: 12px;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-    }
-
-    .spec-item {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .spec-item dt {
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-
-    .comparison-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .comparison-row.header {
-        display: none;
-    }
-
-    .comparison-row > div:first-child {
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-
-    .comparison-row > div:nth-child(2)::before {
-        content: 'SHA-256: ';
-        font-weight: 500;
-        color: var(--text-medium);
-    }
-
-    .comparison-row > div:nth-child(3)::before {
-        content: 'Yespower: ';
-        font-weight: 500;
-        color: var(--text-medium);
-    }
-
-    .platform-tabs {
-        flex-direction: column;
-    }
-
-    .platform-tab {
-        width: 100%;
-        text-align: center;
-    }
-
-    .compare-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .info-box,
-    .callout-box,
-    .quote-box,
-    .rpc-cmd,
-    .change-item {
-        padding: 15px;
-    }
-
-    .final-statement {
-        padding: 25px 20px;
-    }
-
-    .final-statement h2 {
-        font-size: 22px;
-    }
-}
-</style>
-
 <script>
-// Mobile navigation toggle
-const mobileNavToggle = document.getElementById('mobileNavToggle');
-const mobileNavDropdown = document.getElementById('mobileNavDropdown');
-
-if (mobileNavToggle) {
-    mobileNavToggle.addEventListener('click', function() {
-        mobileNavDropdown.classList.toggle('active');
-    });
-}
-
-// Tab switching for both desktop and mobile
-const allNavLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
-allNavLinks.forEach(link => {
+document.querySelectorAll('.tab-link').forEach(link => {
     link.addEventListener('click', function(e) {
         e.preventDefault();
+
+        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        this.classList.add('active');
         const tabId = this.getAttribute('data-tab');
-
-        // Update active state for both desktop and mobile
-        document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(l => {
-            l.classList.remove('active');
-        });
-        document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(l => {
-            l.classList.add('active');
-        });
-
-        // Update content
-        document.querySelectorAll('.tab-content').forEach(c => {
-            c.classList.remove('active');
-        });
         document.getElementById(tabId).classList.add('active');
 
-        // Close mobile dropdown after selection
-        if (mobileNavDropdown) {
-            mobileNavDropdown.classList.remove('active');
-        }
-
-        // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });
 
-// Platform switching in Building tab
-document.querySelectorAll('.platform-tab').forEach(btn => {
+document.querySelectorAll('.platform-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const platform = this.getAttribute('data-platform');
 
-        // Update active button
-        document.querySelectorAll('.platform-tab').forEach(b => {
-            b.classList.remove('active');
-        });
-        this.classList.add('active');
+        document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.platform-content').forEach(c => c.classList.remove('active'));
 
-        // Update content
-        document.querySelectorAll('.platform-content').forEach(c => {
-            c.classList.remove('active');
-        });
+        this.classList.add('active');
         document.getElementById(platform).classList.add('active');
     });
 });
