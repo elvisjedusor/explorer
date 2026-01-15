@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ config.COIN_NAME }} Explorer{% endblock %}</title>
+    <title>{% block title %}{{ config.COIN_NAME }} {% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
@@ -317,11 +317,11 @@
             fill: currentColor;
         }
         .community-btn.bitcointalk {
-            background: #f7931a;
-            border-color: #d87d14;
+            background: #2a5db0;
+            border-color: #1e4a8a;
         }
         .community-btn.bitcointalk:hover {
-            background: #e8850f;
+            background: #1e4a8a;
         }
         .table-responsive {
             width: 100%;
