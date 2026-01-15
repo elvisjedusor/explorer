@@ -8,7 +8,7 @@
     <p style="margin-bottom: 15px;">
         Download the official {{ config.COIN_NAME }} wallet and daemon for your operating system.
         <br>
-        <strong>Current Version: 0.3.19.3</strong>
+        <strong>Current Version: 0.3.19.4</strong>
     </p>
 
     <div class="download-sections">
@@ -19,7 +19,7 @@
             </div>
             <table class="download-table">
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitok-0.3.19.3-win64.zip">bitok-0.3.19.3-win64.zip</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitok-0.3.19.4-win64.zip">bitok-0.3.19.4-win64.zip</a></td>
                     <td>GUI + daemon</td>
                 </tr>
             </table>
@@ -30,51 +30,52 @@
                 <img src="{{ url_for('static', filename='linux-logo.svg') }}" alt="Linux" class="os-icon">
                 <h3>Linux</h3>
             </div>
+            
             <table class="download-table">
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitok-0.3.19.3-x86_64.AppImage">bitok-0.3.19.3-x86_64.AppImage</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitok-gui-0.3.19.4-linux-x86_64.tar.gz">bitok-gui-0.3.19.4-linux-x86_64.tar.gz</a></td>
                     <td>GUI (portable)</td>
                 </tr>
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitokd-static-0.3.19.3-linux-x86_64.tar.gz">bitokd-static-0.3.19.3-linux-x86_64.tar.gz</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitokd-static-0.3.19.4-linux-x86_64.tar.gz">bitokd-static-0.3.19.4-linux-x86_64.tar.gz</a></td>
                     <td>daemon only</td>
                 </tr>
             </table>
         </div>
 
-        <!-- <div class="os-section">
+        <div class="os-section">
             <div class="os-header">
                 <img src="{{ url_for('static', filename='apple-logo.svg') }}" alt="macOS" class="os-icon">
                 <h3>macOS (Apple Silicon)</h3>
             </div>
             <table class="download-table">
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitok-0.3.19.3-macos-arm64.tar.gz">bitok-0.3.19.3-macos-arm64.tar.gz</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitok-macos-arm64.zip">bitok-macos-arm64.zip</a></td>
                     <td>GUI (portable)</td>
                 </tr>
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitokd-0.3.19.3-macos-arm64.tar.gz">bitokd-0.3.19.3-macos-arm64.tar.gz</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitokd-macos-arm64.zip">bitokd-macos-arm64.zip</a></td>
                     <td>daemon only</td>
                 </tr>
             </table>
-        </div> -->
+        </div>
 
-        <!-- <div class="os-section">
+      <div class="os-section">
             <div class="os-header">
                 <img src="{{ url_for('static', filename='apple-logo.svg') }}" alt="macOS" class="os-icon">
                 <h3>macOS (Intel-based)</h3>
             </div>
             <table class="download-table">
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitok-0.3.19.3-macos-x86_64.tar.gz">bitok-0.3.19.3-macos-x86_64.tar.gz</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitok-macos-x86_64.zip">bitok-macos-x86_64.zip</a></td>
                     <td>GUI (portable)</td>
                 </tr>
                 <tr>
-                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.3/bitokd-0.3.19.3-macos-x86_64.tar.gz">bitokd-0.3.19.3-macos-x86_64.tar.gz</a></td>
+                    <td><a href="https://github.com/elvisjedusor/bitok/releases/download/0.3.19.4/bitokd-macos-x86_64.zip">bitokd-macos-x86_64.zip</a></td>
                     <td>daemon only</td>
                 </tr>
             </table>
-        </div> -->
+        </div>
     </div>
 </div>
 
@@ -89,9 +90,14 @@
 <div class="card">
     <h2 class="card-title">SHA256 Checksums</h2>
     <p style="margin-bottom: 10px;">Verify the integrity of your downloads:</p>
-    <pre class="checksums">c4e5500829af865ba736a5bdb95f502cc1e3428da9623104317a90700c9f729d  bitok-0.3.19.3-win64.zip
-e3b1ed71862ca870ddcf3e44f20df4898a067b62d57a3816102b757910099446  bitok-0.3.19.3-x86_64.AppImage
-0455272977ee673cf0cecd9f3aa7c44a570bcd98ecfd6408000f6e4bad7d04d1  bitokd-static-0.3.19.3-linux-x86_64.tar.gz
+    <pre class="checksums">
+d89e9c2a10a2ac5937e7597413414c5982678e8ec704f9d761db0b769c2877a9  bitok-0.3.19.4-win64.zip
+6d44626eb20ea0ae46b6ad173232f24b7ed6961bcb306b50276942b40ee1e100  bitokd-macos-arm64.zip
+498ef29276849ecc849ac50b02f513837e82754f05d84a5dc1ed61d3100fb291  bitokd-macos-x86_64.zip
+900d148cefd86ed07b3925b912545cdf55ff9b99f972b0eff0930c950a493e5a  bitokd-static-0.3.19.4-linux-x86_64.tar.gz
+985eeaa190f8fa12ddd047cf726c163f03b148ef882f920b359435ee14b6bea0  bitok-gui-0.3.19.4-linux-x86_64.tar.gz
+b4945c00e67a4f92a32c61e660e7f34c39424f4b3a4a131bbd2d17f7a23019cb  bitok-macos-arm64.zip
+6d4a6deff1fb09136ee6afe51e29bb0d857025afbc6e6ccb39115e366408c18f  bitok-macos-x86_64.zip
 </pre>
 </div>
 
