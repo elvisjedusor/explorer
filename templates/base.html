@@ -537,7 +537,8 @@
         <div class="container header-content">
             <a href="/" class="logo">
                 <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Bitok">
-                {{ config.COIN_NAME }} <span>Explorer</span>
+                {{ config.COIN_NAME }} 
+                <!-- <span>Explorer</span> -->
             </a>
             <nav>
                 <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
