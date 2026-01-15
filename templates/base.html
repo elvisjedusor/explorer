@@ -72,10 +72,17 @@
             border-radius: 3px;
             font-weight: bold;
             font-size: 13px;
+            transition: all 0.2s;
         }
         nav a:hover {
             background: #ccc;
             text-decoration: none;
+        }
+        nav a.active {
+            background: #c59000;
+            color: #fff;
+            border-color: #a07800;
+            box-shadow: 0 2px 4px rgba(197, 144, 0, 0.3);
         }
         .search-form {
             display: flex;
@@ -351,10 +358,13 @@
                 justify-content: center;
                 flex-wrap: wrap;
                 gap: 8px;
+                width: 100%;
             }
             nav a {
                 padding: 10px 14px;
                 font-size: 14px;
+                flex: 1;
+                text-align: center;
             }
             .search-form {
                 flex-direction: column;
@@ -480,6 +490,8 @@
             nav a {
                 padding: 10px 12px;
                 font-size: 13px;
+                flex: 1;
+                text-align: center;
             }
             .card {
                 padding: 10px;
@@ -524,15 +536,14 @@
     <header>
         <div class="container header-content">
             <a href="/" class="logo">
-                <img src="{{ url_for('static', filename='bc1.png') }}" alt="Bitok">
-                {{ config.COIN_NAME }} 
-                <!-- <span>Explorer</span> -->
+                <img src="{{ url_for('static', filename='favicon.ico') }}" alt="Bitok">
+                {{ config.COIN_NAME }} <span>Explorer</span>
             </a>
             <nav>
-                <a href="/">Home</a>
-                <a href="/blocks">Blocks</a>
-                <a href="/docs">Docs</a>
-                <a href="/download">Downloads</a>
+                <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+                <a href="/blocks" class="{% if request.path.startswith('/blocks') or request.path.startswith('/block/') %}active{% endif %}">Blocks</a>
+                <a href="/docs" class="{% if request.path.startswith('/docs') %}active{% endif %}">Docs</a>
+                <a href="/download" class="{% if request.path.startswith('/download') %}active{% endif %}">Downloads</a>
             </nav>
             <form action="/search" method="get" class="search-form">
                 <input type="text" name="q" class="search-input" placeholder="Search block, tx, or address...">
