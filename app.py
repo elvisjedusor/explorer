@@ -108,7 +108,7 @@ def calculate_hashrate_from_blocks(session, difficulty):
     if difficulty is None or difficulty <= 0:
         return 0, BLOCK_TIME
 
-    NUM_BLOCKS = 50
+    NUM_BLOCKS = 30
 
     recent_blocks = session.query(Block.timestamp).order_by(
         desc(Block.height)
