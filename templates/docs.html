@@ -345,8 +345,8 @@
 
 <nav class="docs-nav">
     <a href="#overview" class="tab-link active" data-tab="overview">Overview</a>
-    <a href="#mining" class="tab-link" data-tab="mining">Mining</a>
     <a href="#building" class="tab-link" data-tab="building">Building</a>
+    <a href="#mining" class="tab-link" data-tab="mining">Solo Mining</a>
     <a href="#rpc" class="tab-link" data-tab="rpc">RPC API</a>
     <a href="#bitokpow" class="tab-link" data-tab="bitokpow">BitokPOW</a>
     <a href="#manifesto" class="tab-link" data-tab="manifesto">Manifesto</a>
@@ -418,47 +418,95 @@ nNonce:    37137</code></pre>
     </div>
 
     <div id="mining" class="tab-pane">
-        <h1>Mining Bitok</h1>
-        <p>Bitok uses Yespower proof-of-work, designed to keep mining accessible to regular users with regular computers.</p>
+        <h1>Solo Mining Guide</h1>
+        <p>Solo mining means you mine directly to your own wallet without going through a mining pool. All block rewards (50 BITOK) go directly to you.</p>
 
-        <h2>Start Mining</h2>
+        <div class="info-box">
+            <strong>Key Points:</strong> All rewards go to you, no pool fees, but you need to find a complete block to get any reward. Higher hashrate increases your chances of finding blocks.
+        </div>
 
-        <h3>Daemon (Command Line)</h3>
+        <h2>Method 1: Built-in Miner</h2>
+        <p>The easiest way to solo mine is using Bitok's built-in miner.</p>
+
+        <h3>Start Mining</h3>
         <pre><code># Mine with all CPU cores
 ./bitokd -gen
 
 # Mine with specific number of cores
 ./bitokd -gen -genproclimit=4
 
-# Start daemon in background with mining
-./bitokd -daemon -gen</code></pre>
+# Run in background
+./bitokd -gen -daemon</code></pre>
 
-        <h3>GUI Wallet</h3>
-        <p>Click "Generate Coins" button to enable mining and adjust the processor limit if desired.</p>
-
-        <h2>Mining Commands (RPC)</h2>
+        <h3>Control Mining via RPC</h3>
         <pre><code># Enable mining with 4 threads
 ./bitokd setgenerate true 4
 
+# Disable mining
+./bitokd setgenerate false
+
 # Check mining status
-./bitokd getgenerate
+./bitokd getmininginfo</code></pre>
 
-# Get network difficulty
-./bitokd getdifficulty
+        <h2>Method 2: cpuminer-opt (Recommended)</h2>
+        <p><strong>cpuminer-opt</strong> is an optimized CPU miner that typically achieves higher hashrates than the built-in miner.</p>
 
-# Get general info (includes mining status)
-./bitokd getinfo</code></pre>
+        <h3>Install cpuminer-opt</h3>
+        <pre><code># Ubuntu/Debian
+sudo apt-get install build-essential automake libssl-dev \
+    libcurl4-openssl-dev libjansson-dev libgmp-dev zlib1g-dev git
+git clone https://github.com/JayDDee/cpuminer-opt.git
+cd cpuminer-opt
+./autogen.sh
+CFLAGS="-O3 -march=native" ./configure --with-curl
+make -j$(nproc)</code></pre>
 
-        <h2>Mining Pool Integration</h2>
-        <p>Existing CPU miners like <code>cpuminer-multi</code> or <code>cpuminer-opt</code> support Yespower with proper parameters:</p>
+        <h3>Configure Bitok Node</h3>
+        <p>Create <code>bitok.conf</code> in your data directory:</p>
+        <pre><code># Enable RPC server
+server=1
+rpcuser=miner
+rpcpassword=YourSecurePasswordHere123
+rpcport=8332
+rpcallowip=127.0.0.1
+gen=0</code></pre>
+
+        <h3>Start cpuminer-opt</h3>
         <pre><code>./cpuminer \
-    --algo=yespower \
+    -a yespower \
+    -o http://127.0.0.1:8332 \
+    -u miner \
+    -p YourSecurePasswordHere123 \
     --param-n=2048 \
     --param-r=32 \
     --param-key="BitokPoW" \
-    --url=http://127.0.0.1:8332 \
-    --user=rpcuser \
-    --pass=rpcpassword</code></pre>
+    -t 4</code></pre>
+
+        <h2>Performance Tuning</h2>
+        <h3>Thread Count</h3>
+        <ul>
+            <li>Start with physical cores only (often best for Yespower)</li>
+            <li>Then try with all cores including hyperthreading</li>
+            <li>Test to find optimal configuration</li>
+        </ul>
+
+        <h3>CPU Governor (Linux)</h3>
+        <pre><code># Set CPU to performance mode
+sudo cpupower frequency-set -g performance</code></pre>
+
+        <h2>Monitoring</h2>
+        <pre><code># Check mining info
+./bitokd getmininginfo
+
+# Check network difficulty
+./bitokd getdifficulty
+
+# Check your balance
+./bitokd getbalance</code></pre>
+
+        <div class="warning-box">
+            <strong>Security:</strong> Use strong passwords (32+ characters), never expose RPC to the internet, and backup your wallet.dat regularly!
+        </div>
     </div>
 
     <div id="building" class="tab-pane">
@@ -599,12 +647,38 @@ pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-boost \
             <tr><td>Authentication</td><td>HTTP Basic Auth</td></tr>
         </table>
 
+        <h2>Configuration (bitok.conf)</h2>
+        <p>Create <code>bitok.conf</code> in your data directory for persistent RPC settings:</p>
+        <table class="spec-table">
+            <tr><td>Linux</td><td><code>~/.bitok/bitok.conf</code></td></tr>
+            <tr><td>macOS</td><td><code>~/Library/Application Support/Bitok/bitok.conf</code></td></tr>
+            <tr><td>Windows</td><td><code>%APPDATA%\Bitok\bitok.conf</code></td></tr>
+        </table>
+        <pre><code># Enable RPC server
+server=1
+
+# RPC credentials (use strong passwords!)
+rpcuser=yourusername
+rpcpassword=YourSecurePassword123
+
+# RPC settings
+rpcport=8332
+rpcallowip=127.0.0.1
+rpcallowip=192.168.1.0/24
+
+# Mining settings
+gen=0
+genproclimit=4</code></pre>
+
         <h2>Connection</h2>
-        <pre><code># Start daemon with RPC enabled
+        <pre><code># Start daemon (uses bitok.conf)
+./bitokd -daemon
+
+# Or with command-line options
 ./bitokd -rpcuser=yourusername -rpcpassword=yourpassword -server
 
 # Execute RPC command
-./bitokd -rpcuser=yourusername -rpcpassword=yourpassword getinfo</code></pre>
+./bitokd getinfo</code></pre>
 
         <h2>General Commands</h2>
 
@@ -695,6 +769,68 @@ pacman -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-boost \
 
 # Disable mining
 ./bitokd setgenerate false</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getmininginfo</h4>
+            <p>Returns mining statistics and network status.</p>
+            <pre><code>./bitokd getmininginfo</code></pre>
+            <p><strong>Response:</strong></p>
+            <pre><code>{
+  "blocks": 12450,
+  "currentblocksize": 0,
+  "currentblocktx": 0,
+  "difficulty": 1.52587891,
+  "networkhashps": 125000,
+  "pooledtx": 5,
+  "chain": "main",
+  "generate": true,
+  "genproclimit": 4
+}</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getblocktemplate</h4>
+            <p>Returns block template for mining (BIP 22 compatible). Used by mining pools and external miners.</p>
+            <pre><code>./bitokd getblocktemplate</code></pre>
+            <p><strong>Response:</strong></p>
+            <pre><code>{
+  "version": 1,
+  "previousblockhash": "000007a5...",
+  "transactions": [],
+  "coinbaseaux": {"flags": ""},
+  "coinbasevalue": 5000000000,
+  "target": "00000000ffff...",
+  "mintime": 1609459200,
+  "mutable": ["time", "transactions", "prevblock"],
+  "noncerange": "00000000ffffffff",
+  "sigoplimit": 20000,
+  "sizelimit": 1000000,
+  "curtime": 1609459260,
+  "bits": "1effffff",
+  "height": 12451
+}</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>submitblock &lt;hexdata&gt;</h4>
+            <p>Submit a mined block to the network.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> hexdata (string) - Hex-encoded block data</div>
+            <pre><code>./bitokd submitblock "hex_block_data"</code></pre>
+            <p><strong>Response:</strong> <code>null</code> on success, <code>"rejected"</code> on failure</p>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getwork</h4>
+            <p>Legacy mining protocol for older mining software.</p>
+            <pre><code>./bitokd getwork</code></pre>
+            <p><strong>Response:</strong></p>
+            <pre><code>{
+  "data": "01000000...00000000",
+  "target": "00000000ffff...00",
+  "algorithm": "yespower"
+}</code></pre>
+            <p>The <code>algorithm</code> field indicates Yespower PoW with N=2048, r=32, pers="BitokPoW".</p>
         </div>
 
         <h2>Python Example</h2>
