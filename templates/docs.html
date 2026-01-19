@@ -425,8 +425,24 @@ nNonce:    37137</code></pre>
             <strong>Key Points:</strong> All rewards go to you, no pool fees, but you need to find a complete block to get any reward. Higher hashrate increases your chances of finding blocks.
         </div>
 
-        <h2>Method 1: Built-in Miner</h2>
-        <p>The easiest way to solo mine is using Bitok's built-in miner.</p>
+        <h2>Method 1: GUI Wallet (Easiest)</h2>
+        <p>The simplest way to start mining - just like Satoshi intended in 2009.</p>
+
+        <h3>Steps</h3>
+        <ol>
+            <li>Download and run the Bitok GUI wallet (<code>bitok</code> or <code>bitok.exe</code>)</li>
+            <li>Wait for the blockchain to sync (status bar shows progress)</li>
+            <li>Go to <strong>Settings</strong> menu</li>
+            <li>Click <strong>"Generate Coins"</strong></li>
+            <li>That's it! Mining starts automatically</li>
+        </ol>
+
+        <div class="info-box">
+            <strong>Tip:</strong> Your mined coins will appear in the wallet once a block is found and confirmed (100 blocks maturity). Check the "Generated" balance to see immature coins waiting for confirmation.
+        </div>
+
+        <h2>Method 2: Command Line (Built-in Miner)</h2>
+        <p>For those who prefer the terminal or running on servers without GUI.</p>
 
         <h3>Start Mining</h3>
         <pre><code># Mine with all CPU cores
@@ -448,7 +464,7 @@ nNonce:    37137</code></pre>
 # Check mining status
 ./bitokd getmininginfo</code></pre>
 
-        <h2>Method 2: cpuminer-opt (Recommended)</h2>
+        <h2>Method 3: cpuminer-opt (Best Performance)</h2>
         <p><strong>cpuminer-opt</strong> is an optimized CPU miner that typically achieves higher hashrates than the built-in miner.</p>
 
         <h3>Install cpuminer-opt</h3>
