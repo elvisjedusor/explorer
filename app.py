@@ -100,34 +100,75 @@ def format_age(ts):
 
 def calculate_hashrate_from_blocks(session, difficulty):
     """
-    Calculate actual hashrate based on recent block times.
+    Calculate network hashrate exactly as Bitok does.
 
-    Uses the last N blocks to determine actual average block time,
-    which gives real network hashrate rather than theoretical.
+    This matches the GetNetworkHashPS function in Bitok:
+    1. Look back N blocks
+    2. Sum up work from each block's nBits
+    3. Calculate hashes per second using the time span
     """
-    if difficulty is None or difficulty <= 0:
+    LOOKUP_BLOCKS = 30
+
+    # Get the best height
+    best_block = session.query(Block).order_by(desc(Block.height)).first()
+    if not best_block or best_block.height < 2:
         return 0, BLOCK_TIME
 
-    NUM_BLOCKS = 30
+    best_height = best_block.height
+    actual_lookup = min(best_height, LOOKUP_BLOCKS)
 
-    recent_blocks = session.query(Block.timestamp).order_by(
-        desc(Block.height)
-    ).limit(NUM_BLOCKS + 1).all()
+    # Get blocks for the range
+    start_height = best_height - actual_lookup
+    blocks = session.query(Block.bits, Block.timestamp).filter(
+        Block.height >= start_height,
+        Block.height <= best_height
+    ).order_by(Block.height).all()
 
-    if len(recent_blocks) < 2:
-        actual_block_time = BLOCK_TIME
-    else:
-        timestamps = [b.timestamp for b in recent_blocks if b.timestamp]
-        if len(timestamps) >= 2:
-            time_span = timestamps[0] - timestamps[-1]
-            blocks_in_span = len(timestamps) - 1
-            actual_block_time = time_span / blocks_in_span if blocks_in_span > 0 else BLOCK_TIME
-            actual_block_time = max(1, actual_block_time)
-        else:
-            actual_block_time = BLOCK_TIME
+    if len(blocks) < 2:
+        return 0, BLOCK_TIME
 
-    hashrate = difficulty * (2 ** 256) / MAX_TARGET / actual_block_time
-    return hashrate, actual_block_time
+    # Find min and max time
+    min_time = min(b.timestamp for b in blocks if b.timestamp)
+    max_time = max(b.timestamp for b in blocks if b.timestamp)
+
+    if min_time == max_time:
+        return 0, BLOCK_TIME
+
+    # Calculate total work by summing difficulty from each block's nBits
+    total_work = 0.0
+    for block in blocks:
+        if block.bits is None or block.bits == 0:
+            continue
+
+        # Extract shift and mantissa from nBits (compact format)
+        n_shift = (block.bits >> 24) & 0xff
+        n_mantissa = block.bits & 0x00ffffff
+
+        if n_mantissa > 0:
+            # Calculate difficulty for this block
+            d_diff = float(0x00ffffff) / float(n_mantissa)
+
+            # Adjust by shift (exponent)
+            while n_shift < 0x1e:
+                d_diff *= 256.0
+                n_shift += 1
+            while n_shift > 0x1e:
+                d_diff /= 256.0
+                n_shift -= 1
+
+            total_work += d_diff
+
+    # Calculate hashrate: (totalWork * 2^17) / timeDiff
+    time_diff = max_time - min_time
+    if time_diff <= 0:
+        return 0, BLOCK_TIME
+
+    hashes_per_sec = (total_work * pow(2.0, 17)) / time_diff
+
+    # Calculate average block time for display
+    avg_block_time = time_diff / (len(blocks) - 1) if len(blocks) > 1 else BLOCK_TIME
+
+    return hashes_per_sec, avg_block_time
 
 
 def calculate_hashrate(difficulty):
