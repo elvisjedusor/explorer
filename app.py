@@ -38,7 +38,7 @@ rpc = BitokRPC(
 
 COIN = 100000000
 BLOCK_TIME = 600
-MAX_TARGET = 0xffffff * (2 ** 216)
+MAX_TARGET = 0x7fffff * (2 ** 216)
 
 
 @app.template_filter('coin')
@@ -118,7 +118,7 @@ def calculate_hashrate_from_blocks(session, difficulty):
     actual_lookup = min(best_height, LOOKUP_BLOCKS)
 
     # Get blocks for the range
-    start_height = best_height - actual_lookup
+    start_height = best_height - actual_lookup + 1
     blocks = session.query(Block.bits, Block.timestamp).filter(
         Block.height >= start_height,
         Block.height <= best_height
@@ -158,12 +158,12 @@ def calculate_hashrate_from_blocks(session, difficulty):
 
             total_work += d_diff
 
-    # Calculate hashrate: (totalWork * 2^17) / timeDiff
+    # Calculate hashrate: (totalWork * 2^18) / timeDiff
     time_diff = max_time - min_time
     if time_diff <= 0:
         return 0, BLOCK_TIME
 
-    hashes_per_sec = (total_work * pow(2.0, 17)) / time_diff
+    hashes_per_sec = (total_work * pow(2.0, 18)) / time_diff
 
     # Calculate average block time for display
     avg_block_time = time_diff / (len(blocks) - 1) if len(blocks) > 1 else BLOCK_TIME
