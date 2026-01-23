@@ -349,7 +349,6 @@
     <a href="#mining" class="tab-link" data-tab="mining">Solo Mining</a>
     <a href="#rpc" class="tab-link" data-tab="rpc">RPC API</a>
     <a href="#bitokpow" class="tab-link" data-tab="bitokpow">BitokPOW</a>
-    <a href="#manifesto" class="tab-link" data-tab="manifesto">Manifesto</a>
 </nav>
 
 <div class="docs-content">
@@ -971,97 +970,6 @@ if (hash <= target) {
         <h2>Conclusion</h2>
         <p>Yespower proof-of-work implements Satoshi's vision of accessible CPU mining. Anyone with a laptop can participate in securing the network without specialized hardware.</p>
         <p><strong>This is not innovation. This is restoration.</strong></p>
-    </div>
-
-    <div id="manifesto" class="tab-pane">
-        <h1>Bitok Manifesto</h1>
-        <p><strong>An experiment in what Bitcoin would look like if Satoshi's vision of CPU mining had held up.</strong></p>
-
-        <h2>What Happened to Bitcoin</h2>
-        <p>Bitcoin worked in 2010. You downloaded the software, clicked "Generate Coins," and your laptop found blocks. The network grew because participation was free and easy.</p>
-        <p>Then GPUs happened. Then mining pools. Then FPGAs, ASICs. The barrier to entry went from "own a computer" to "have access to cheap electricity and specialized hardware."</p>
-        <p>This was not a conspiracy. It was economics. SHA-256 happens to be very fast on parallel hardware. Someone was always going to optimize it.</p>
-
-        <h2>What Satoshi Said About It</h2>
-        <div class="quote-box">
-            <p>"We should have a gentleman's agreement to postpone the GPU arms race as long as we can for the good of the network. It's much easier to get new users up to speed if they don't have to worry about GPU drivers and compatibility. It's nice how anyone with just a CPU can compete fairly equally right now."</p>
-            <p><strong>- Satoshi Nakamoto, December 12, 2010</strong></p>
-        </div>
-
-        <div class="quote-box">
-            <p>"GPUs are much less evenly distributed, so the generated coins only go towards rewarding 20% of the people for joining the network instead of 100%."</p>
-            <p><strong>- To Laszlo Hanyecz (the pizza guy)</strong></p>
-        </div>
-
-        <p>He knew. He just didn't have a solution at the time.</p>
-
-        <h2>What Bitok Changes</h2>
-        <ol>
-            <li><strong>Yespower instead of SHA-256</strong> - GPU miners don't get 1000x advantage anymore. More like 2x, if that.</li>
-            <li><strong>New genesis block</strong> - Separate network. No confusion with BTC. No replay attacks. Clean slate.</li>
-            <li><strong>Modern build system</strong> - Compiles on Ubuntu 24.04, macOS, Windows.</li>
-        </ol>
-
-        <p>Everything else is exactly as Satoshi left it. Same 21 million cap. Same 10 minute blocks. Same halving schedule. Same transaction format. Same script system. Same wallet behavior.</p>
-
-        <h2>What Bitok Does NOT Change</h2>
-        <ul>
-            <li>No new opcodes</li>
-            <li>No SegWit</li>
-            <li>No block size increase</li>
-            <li>No layer 2</li>
-            <li>No BIPs</li>
-            <li>No governance</li>
-            <li>No foundation</li>
-            <li>No roadmap</li>
-        </ul>
-        <p><strong>The protocol is frozen at December 2010.</strong></p>
-
-        <h2>Why</h2>
-        <p>I wanted to mine Bitcoin with my laptop. Not buy ASICs. Not join pools. Not pay for cloud hashrate.</p>
-        <p>I couldn't, because of physics and economics.</p>
-        <p>So I made this instead.</p>
-
-        <h2>The Philosophy Part</h2>
-        <p>Bitcoin's whitepaper is 9 pages. Most of it is math. Satoshi didn't write manifestos. He wrote code that worked and let people figure out what it meant.</p>
-        <p>The code said: anyone can transact. Anyone can mine. No intermediaries. No permission.</p>
-        <p>Somewhere along the way, "anyone can mine" became "anyone with industrial-scale infrastructure can mine." That happened gradually and probably inevitably.</p>
-        <p><strong>Bitok is an experiment in what Bitcoin would look like if the mining algorithm had been different from the start.</strong></p>
-        <p>Nothing more profound than that.</p>
-
-        <h2>Will This Succeed</h2>
-        <p>Define "succeed."</p>
-        <ul>
-            <li>If you mean: will the software compile and run? <strong>Yes.</strong> I tested it.</li>
-            <li>If you mean: will people use it? <strong>Some might. Most won't.</strong> That's fine.</li>
-            <li>If you mean: will it be worth money? <strong>I genuinely don't know.</strong> Markets are weird.</li>
-            <li>If you mean: will it stay decentralized? <strong>That depends on whether enough people run nodes.</strong></li>
-        </ul>
-
-        <h2>No Promises</h2>
-        <p>I'm not going to tell you this will change the world. I'm not going to tell you to buy it. I'm not going to tell you anything you want to hear just because it sounds good.</p>
-        <p><strong>Here's software. It does what it says. Run it or don't.</strong></p>
-
-        <div class="info-box">
-            <p><em>"Writing a description for this thing is bloody hard. There's nothing to quite relate it to."</em></p>
-            <p><strong>- Satoshi Nakamoto, January 2009</strong></p>
-            <p><strong>Still true.</strong></p>
-        </div>
-
-        <h2>Security Fixes Included</h2>
-        <p>All security fixes from Bitcoin v0.3.19 are present:</p>
-        <ul>
-            <li>Value overflow protection (the 184 billion coin bug)</li>
-            <li>Blockchain checkpoints</li>
-            <li>DoS limits</li>
-            <li>IsStandard() transaction filtering</li>
-        </ul>
-        <p>Bitcoin forked once in August 2010 to fix the overflow bug. <strong>Bitok launches with all fixes in place. No forks needed.</strong></p>
-
-        <div style="background: #f5f5f5; border: 2px solid #c59000; padding: 20px; margin: 25px 0; text-align: center;">
-            <h2 style="margin: 0 0 10px 0; color: #c59000;">Run the code.</h2>
-            <p style="margin: 0; font-size: 14px; color: #333;">That is the manifesto.</p>
-        </div>
     </div>
 </div>
 
