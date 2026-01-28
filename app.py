@@ -100,16 +100,15 @@ def format_age(ts):
 
 def calculate_hashrate_from_blocks(session, difficulty):
     """
-    Calculate network hashrate exactly as Bitok does.
-
-    This matches the GetNetworkHashPS function in Bitok:
-    1. Look back N blocks
-    2. Sum up work from each block's nBits
-    3. Calculate hashes per second using the time span
+    Simple hashrate calculation:
+    - Get last 30 blocks
+    - Calculate time taken
+    - Hashrate = (blocks * difficulty * 2^17) / time_elapsed
+    Note: Bitok has 17 leading zero bits (not Bitcoin's 32)
     """
     LOOKUP_BLOCKS = 30
 
-    # Get the best height
+    # Get the last N blocks
     best_block = session.query(Block).order_by(desc(Block.height)).first()
     if not best_block or best_block.height < 2:
         return 0, BLOCK_TIME
@@ -117,58 +116,38 @@ def calculate_hashrate_from_blocks(session, difficulty):
     best_height = best_block.height
     actual_lookup = min(best_height, LOOKUP_BLOCKS)
 
-    # Get blocks for the range
+    # Get blocks with timestamps
     start_height = best_height - actual_lookup + 1
-    blocks = session.query(Block.bits, Block.timestamp).filter(
+    blocks = session.query(Block.timestamp).filter(
         Block.height >= start_height,
-        Block.height <= best_height
+        Block.height <= best_height,
+        Block.timestamp.isnot(None)
     ).order_by(Block.height).all()
 
     if len(blocks) < 2:
         return 0, BLOCK_TIME
 
-    # Find min and max time
-    min_time = min(b.timestamp for b in blocks if b.timestamp)
-    max_time = max(b.timestamp for b in blocks if b.timestamp)
+    # Calculate time span
+    timestamps = [b.timestamp for b in blocks]
+    time_span = timestamps[-1] - timestamps[0]
 
-    if min_time == max_time:
+    if time_span <= 0:
         return 0, BLOCK_TIME
 
-    # Calculate total work by summing difficulty from each block's nBits
-    total_work = 0.0
-    for block in blocks:
-        if block.bits is None or block.bits == 0:
-            continue
+    # Average block time
+    avg_block_time = time_span / (len(blocks) - 1)
 
-        # Extract shift and mantissa from nBits (compact format)
-        n_shift = (block.bits >> 24) & 0xff
-        n_mantissa = block.bits & 0x00ffffff
+    # Simple hashrate formula
+    # At difficulty D, finding a block takes roughly D * 2^17 hashes (Bitok has 17 leading zero bits)
+    # We found N blocks in time_span seconds
+    # So hashrate = (N * D * 2^17) / time_span
+    if difficulty and difficulty > 0:
+        num_blocks = len(blocks) - 1  # Number of intervals
+        hashrate = (num_blocks * difficulty * pow(2, 17)) / time_span
+    else:
+        hashrate = 0
 
-        if n_mantissa > 0:
-            # Calculate difficulty for this block
-            d_diff = float(0x7fffff) / float(n_mantissa)
-
-            # Adjust by shift (exponent)
-            while n_shift < 0x1e:
-                d_diff *= 256.0
-                n_shift += 1
-            while n_shift > 0x1e:
-                d_diff /= 256.0
-                n_shift -= 1
-
-            total_work += d_diff
-
-    # Calculate hashrate: (totalWork * 2^16) / timeDiff
-    time_diff = max_time - min_time
-    if time_diff <= 0:
-        return 0, BLOCK_TIME
-
-    hashes_per_sec = (total_work * pow(2.0, 16)) / time_diff
-
-    # Calculate average block time for display
-    avg_block_time = time_diff / (len(blocks) - 1) if len(blocks) > 1 else BLOCK_TIME
-
-    return hashes_per_sec, avg_block_time
+    return hashrate, avg_block_time
 
 
 def calculate_hashrate(difficulty):
