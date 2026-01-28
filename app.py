@@ -158,12 +158,12 @@ def calculate_hashrate_from_blocks(session, difficulty):
 
             total_work += d_diff
 
-    # Calculate hashrate: (totalWork * 2^17) / timeDiff
+    # Calculate hashrate: (totalWork * 2^16) / timeDiff
     time_diff = max_time - min_time
     if time_diff <= 0:
         return 0, BLOCK_TIME
 
-    hashes_per_sec = (total_work * pow(2.0, 17)) / time_diff
+    hashes_per_sec = (total_work * pow(2.0, 16)) / time_diff
 
     # Calculate average block time for display
     avg_block_time = time_diff / (len(blocks) - 1) if len(blocks) > 1 else BLOCK_TIME
