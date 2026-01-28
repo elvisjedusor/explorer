@@ -146,7 +146,7 @@ def calculate_hashrate_from_blocks(session, difficulty):
 
         if n_mantissa > 0:
             # Calculate difficulty for this block
-            d_diff = float(0x00ffffff) / float(n_mantissa)
+            d_diff = float(0x7fffff) / float(n_mantissa)
 
             # Adjust by shift (exponent)
             while n_shift < 0x1e:
