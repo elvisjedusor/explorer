@@ -90,6 +90,17 @@
     color: #333;
 }
 
+.docs-content a {
+    color: #c59000;
+    text-decoration: none;
+    border-bottom: 1px dotted #c59000;
+}
+
+.docs-content a:hover {
+    color: #a07800;
+    border-bottom: 1px solid #a07800;
+}
+
 .docs-content ul,
 .docs-content ol {
     margin: 0 0 12px 20px;
@@ -345,57 +356,76 @@
 
 <nav class="docs-nav">
     <a href="#overview" class="tab-link active" data-tab="overview">Overview</a>
+    <a href="#script" class="tab-link" data-tab="script">Script Engine</a>
+    <a href="#fees" class="tab-link" data-tab="fees">Fee Policy</a>
+    <a href="#spv" class="tab-link" data-tab="spv">SPV Client</a>
     <a href="#building" class="tab-link" data-tab="building">Building</a>
     <a href="#mining" class="tab-link" data-tab="mining">Solo Mining</a>
     <a href="#rpc" class="tab-link" data-tab="rpc">RPC API</a>
     <a href="#bitokpow" class="tab-link" data-tab="bitokpow">BitokPOW</a>
+    <a href="#security" class="tab-link" data-tab="security">Security</a>
 </nav>
 
 <div class="docs-content">
     <div id="overview" class="tab-pane active">
         <h1>What is Bitok</h1>
-        <p><strong>What if Bitcoin had stayed CPU-mineable with complete Satoshi-era codebase?</strong> No features added. No ideology injected. No attempt to "fix" Bitcoin according to modern tastes.</p>
+        <p><strong>Bitok runs Bitcoin v0.3.19 under its original assumptions, finishing parts of the early design that were left incomplete.</strong></p>
 
         <div class="info-box">
-            <strong>Bitcoin v0.3.19 from 2010 was the last release under Satoshi's direct involvement.</strong> Everything after that is history. Not destiny.
+            Bitcoin did not start as "digital gold." That framing came later, after a series of deliberate technical decisions narrowed what Bitcoin was allowed to be.
         </div>
 
-        <p>I've been running an experiment - the original v0.3.19 codebase. The same rules. The same behavior. One major change: a mining algorithm that GPUs and ASICs can't easily dominate. All critical security fixes in place from day one. Adapted only as much as required to run on modern operating systems and resist GPU mining.</p>
+        <p>Satoshi designed a peer-to-peer electronic cash system with a full programmable script engine, a priority system where ordinary transactions move for free, and mining that anyone with a CPU could do.</p>
 
-        <h2>Key Changes from Bitcoin v0.3.19</h2>
+        <p>Then the script opcodes were disabled. The priority system was removed. Mining moved to GPUs, then ASICs. Replace-By-Fee broke zero-confirmation payments. The block size war turned a temporary spam limit into permanent doctrine. What remained was a settlement layer for large holders -- not the system Satoshi built.</p>
+
+        <p>Bitok starts from Satoshi's last release (Bitcoin v0.3.19, December 2010) and finishes what was left undone:</p>
+
         <div class="feature-grid">
             <div class="feature-card">
-                <h4>✓ Modern System Compatibility</h4>
+                <h4>The script engine works</h4>
+                <p>Every opcode Satoshi wrote -- OP_CAT, OP_MUL, OP_AND, OP_SUBSTR, OP_CHECKMULTISIG, all of them -- runs inside a bounded VM with strict execution limits. Bitcoin Core disabled them. Bitok made them safe.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Transactions are free for real users</h4>
+                <p>Coins held for a day move at no cost. Fees exist only to limit spam. This is Satoshi's priority system, implemented as he designed it.</p>
+            </div>
+            <div class="feature-card">
+                <h4>You can mine with your laptop</h4>
+                <p>Yespower proof-of-work. Memory-hard, CPU-optimized. GPUs and ASICs don't help much.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Lightweight wallets work</h4>
+                <p>SPV header sync, bloom filters, Merkle proofs. Section 8 of the whitepaper, implemented.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Mining RPC API with BIP 22 support</h4>
+                <p>Full mining pool integration with getblocktemplate, submitblock, and getwork for compatibility.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Modern system compatibility</h4>
                 <p>Updated build system for OpenSSL 3.x, Boost 1.74+, GCC 11+, wxWidgets 3.2</p>
             </div>
-            <div class="feature-card">
-                <h4>✓ Yespower Proof-of-Work</h4>
-                <p>Replaced SHA-256 with Yespower 1.0 for CPU-friendly, GPU/ASIC-resistant mining</p>
-            </div>
-            <div class="feature-card">
-                <h4>✓ New Genesis Block</h4>
-                <p>Separate network. No confusion with BTC. No replay attacks. Clean slate.</p>
-            </div>
-            <div class="feature-card">
-                <h4>✓ Security Fixes</h4>
-                <p>All Satoshi-era security fixes present from launch</p>
-            </div>
         </div>
-
-        <h2>What's Identical to Bitcoin v0.3.19</h2>
-        <ul>
-            <li>Same transaction format</li>
-            <li>Same script system</li>
-            <li>Same networking code</li>
-            <li>Same wallet behavior</li>
-            <li>21M supply cap</li>
-            <li>Halving schedule</li>
-            <li>10 minute blocks</li>
-        </ul>
 
         <div class="success-box">
-            <strong>Security:</strong> Bitok includes all critical security fixes (value overflow protection, checkpoints, DoS limits, IsStandard filtering) while maintaining the original Bitcoin design by Satoshi.
+            <strong>New genesis block. Separate network.</strong> Same 21M cap, same halving schedule, same 10-minute blocks. All Satoshi-era security fixes included from launch: value overflow protection, checkpoints, DoS limits, IsStandard filtering.
         </div>
+
+        <h2>Documentation</h2>
+        <p>For complete technical documentation, see the GitHub repository:</p>
+        <ul>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/SCRIPT_EXEC.md" target="_blank"><strong>SCRIPT_EXEC.md</strong></a> -- Script engine: execution limits, separated evaluation, signature rules</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/FEES.md" target="_blank"><strong>FEES.md</strong></a> -- Priority-based fee policy</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/SPV_CLIENT.md" target="_blank"><strong>SPV_CLIENT.md</strong></a> -- SPV lightweight client protocol specification</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/SECURITY_FIXES.md" target="_blank"><strong>SECURITY_FIXES.md</strong></a> -- Security hardening details</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/RPC_API.md" target="_blank"><strong>RPC_API.md</strong></a> -- Complete JSON-RPC reference</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/BITOKPOW.md" target="_blank"><strong>BITOKPOW.md</strong></a> -- Yespower proof-of-work</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/BUILD_UNIX.md" target="_blank"><strong>BUILD_UNIX.md</strong></a> -- Linux/Unix build instructions</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/BUILD_MACOS.md" target="_blank"><strong>BUILD_MACOS.md</strong></a> -- macOS build instructions</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/BUILD_WINDOWS.md" target="_blank"><strong>BUILD_WINDOWS.md</strong></a> -- Windows build instructions</li>
+            <li><a href="https://github.com/elvisjedusor/bitok/blob/main/POOL_INTEGRATION.md" target="_blank"><strong>POOL_INTEGRATION.md</strong></a> -- Mining pool integration guide</li>
+        </ul>
 
         <h2>Technical Specifications</h2>
         <table class="spec-table">
@@ -738,6 +768,36 @@ genproclimit=4</code></pre>
             <pre><code>./bitokd getdifficulty</code></pre>
         </div>
 
+        <div class="rpc-cmd">
+            <h4>getbestblockhash</h4>
+            <p>Returns the hash of the best (tip) block in the longest chain.</p>
+            <pre><code>./bitokd getbestblockhash</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getblockheader &lt;hash&gt;</h4>
+            <p>Returns block header information without full transaction data.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> hash (string)</div>
+            <pre><code>./bitokd getblockheader "000007a5d9c7..."</code></pre>
+        </div>
+
+        <h2>SPV Commands</h2>
+
+        <div class="rpc-cmd">
+            <h4>gettxoutproof &lt;txids&gt; [blockhash]</h4>
+            <p>Generate Merkle proof that transactions are in a block.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> txids (JSON array), blockhash (string, optional)</div>
+            <pre><code>./bitokd gettxoutproof '["txid1","txid2"]'
+./bitokd gettxoutproof '["txid1"]' "blockhash"</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>verifytxoutproof &lt;proof&gt;</h4>
+            <p>Verify Merkle proof and return transaction IDs.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> proof (string) - hex-encoded proof</div>
+            <pre><code>./bitokd verifytxoutproof "hex_proof_data"</code></pre>
+        </div>
+
         <h2>Wallet Commands</h2>
 
         <div class="rpc-cmd">
@@ -759,6 +819,100 @@ genproclimit=4</code></pre>
             <p>Sends BITOK to a specified address.</p>
             <div class="rpc-params"><strong>Parameters:</strong> address (string), amount (number)</div>
             <pre><code>./bitokd sendtoaddress "1A1zP1eP5..." 10.50</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>listtransactions [count] [from]</h4>
+            <p>Returns list of recent transactions in the wallet.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> count (number, default 10), from (number, default 0)</div>
+            <pre><code>./bitokd listtransactions
+./bitokd listtransactions 20 10</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>listunspent [minconf] [maxconf]</h4>
+            <p>Returns array of unspent transaction outputs (UTXOs).</p>
+            <div class="rpc-params"><strong>Parameters:</strong> minconf (number, default 1), maxconf (number, default 999999)</div>
+            <pre><code>./bitokd listunspent
+./bitokd listunspent 6 999999</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>dumpprivkey &lt;address&gt;</h4>
+            <p>Export private key for an address in WIF format.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> address (string)</div>
+            <pre><code>./bitokd dumpprivkey "1A1zP1eP5..."</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>importprivkey &lt;wif&gt; [label]</h4>
+            <p>Import private key and trigger blockchain rescan.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> wif (string), label (string, optional)</div>
+            <pre><code>./bitokd importprivkey "5Kb8kLf9zgWQ..."</code></pre>
+        </div>
+
+        <h2>Transaction Commands</h2>
+
+        <div class="rpc-cmd">
+            <h4>gettransaction &lt;txid&gt;</h4>
+            <p>Get detailed information about a wallet transaction.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> txid (string)</div>
+            <pre><code>./bitokd gettransaction "abc123..."</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getrawtransaction &lt;txid&gt; [verbose]</h4>
+            <p>Get raw transaction data (hex or JSON).</p>
+            <div class="rpc-params"><strong>Parameters:</strong> txid (string), verbose (boolean, default false)</div>
+            <pre><code># Get hex
+./bitokd getrawtransaction "abc123..."
+
+# Get JSON details
+./bitokd getrawtransaction "abc123..." 1</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>sendrawtransaction &lt;hex&gt;</h4>
+            <p>Broadcast a raw transaction to the network.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> hex (string) - signed transaction hex</div>
+            <pre><code>./bitokd sendrawtransaction "01000000..."</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>createrawtransaction [{"txid":..., "vout":...},...] {"address":amount,...}</h4>
+            <p>Create unsigned raw transaction from inputs and outputs.</p>
+            <pre><code>./bitokd createrawtransaction \
+  '[{"txid":"abc...","vout":0}]' \
+  '{"1A1zP1...":10.5}'</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>signrawtransaction &lt;hex&gt;</h4>
+            <p>Sign a raw transaction with wallet keys.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> hex (string)</div>
+            <pre><code>./bitokd signrawtransaction "01000000..."</code></pre>
+        </div>
+
+        <h2>Network Commands</h2>
+
+        <div class="rpc-cmd">
+            <h4>getconnectioncount</h4>
+            <p>Returns the number of connections to other nodes.</p>
+            <pre><code>./bitokd getconnectioncount</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>getpeerinfo</h4>
+            <p>Returns data about each connected network node.</p>
+            <pre><code>./bitokd getpeerinfo</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>addnode &lt;node&gt; &lt;add|remove|onetry&gt;</h4>
+            <p>Manually add or remove a peer connection.</p>
+            <div class="rpc-params"><strong>Parameters:</strong> node (string), command (string)</div>
+            <pre><code>./bitokd addnode "192.168.1.100:18333" add
+./bitokd addnode "192.168.1.100:18333" remove</code></pre>
         </div>
 
         <h2>Mining Commands</h2>
@@ -874,6 +1028,10 @@ rpc = BitokRPC('yourusername', 'yourpassword')
 info = rpc.call('getinfo')
 print(f"Balance: {info['balance']} BITOK")
 print(f"Blocks: {info['blocks']}")</code></pre>
+
+        <div class="info-box">
+            <strong>Complete API Reference:</strong> For full documentation of all RPC commands, integration examples, and error handling, see <a href="https://github.com/elvisjedusor/bitok/blob/main/RPC_API.md" target="_blank"><strong>RPC_API.md</strong></a> in the GitHub repository.
+        </div>
     </div>
 
     <div id="bitokpow" class="tab-pane">
@@ -964,6 +1122,275 @@ if (hash <= target) {
         <h2>Conclusion</h2>
         <p>Yespower proof-of-work implements Satoshi's vision of accessible CPU mining. Anyone with a laptop can participate in securing the network without specialized hardware.</p>
         <p><strong>This is not innovation. This is restoration.</strong></p>
+    </div>
+
+    <div id="script" class="tab-pane">
+        <h1>Script Engine</h1>
+        <p>In August 2010, Bitcoin Core disabled most scripting opcodes, citing denial-of-service risk. The practical result was the removal of native programmability. Ethereum later rebuilt an entire ecosystem around capabilities Bitcoin already had.</p>
+
+        <div class="info-box">
+            <strong>OP_CAT</strong> alone is still one of the most debated proposals in Bitcoin, more than a decade later.
+        </div>
+
+        <p>Bitok keeps every opcode. The VM is bounded by execution limits so it is safe under adversarial conditions:</p>
+
+        <h2>Execution Limits</h2>
+        <table class="spec-table">
+            <tr><td>Max script size</td><td>10,000 bytes</td></tr>
+            <tr><td>Max stack depth</td><td>1,000 items</td></tr>
+            <tr><td>Max element size</td><td>520 bytes</td></tr>
+            <tr><td>Max opcodes per script</td><td>201</td></tr>
+            <tr><td>Max sigops per block</td><td>20,000</td></tr>
+            <tr><td>Max multisig keys</td><td>20</td></tr>
+        </table>
+
+        <h2>Enabled Opcodes</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>OP_CAT</h4>
+                <p>String concatenation. Covenant patterns work on-chain.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Arithmetic</h4>
+                <p>OP_MUL, OP_DIV, OP_MOD, OP_LSHIFT, OP_RSHIFT for on-chain computation.</p>
+            </div>
+            <div class="feature-card">
+                <h4>Bitwise Logic</h4>
+                <p>OP_AND, OP_OR, OP_XOR, OP_INVERT for bitwise computation.</p>
+            </div>
+            <div class="feature-card">
+                <h4>String Manipulation</h4>
+                <p>OP_SUBSTR, OP_LEFT, OP_RIGHT for string operations.</p>
+            </div>
+            <div class="feature-card">
+                <h4>OP_CHECKMULTISIG</h4>
+                <p>Bare m-of-n multisig is standard, relays and confirms.</p>
+            </div>
+            <div class="feature-card">
+                <h4>OP_RETURN</h4>
+                <p>Provably unspendable (original was bugged). Safe for data embedding.</p>
+            </div>
+        </div>
+
+        <h2>Security Features</h2>
+        <ul>
+            <li><strong>Strict DER signatures:</strong> Low-S enforcement, prevents malleability</li>
+            <li><strong>Separated evaluation:</strong> scriptSig cannot manipulate scriptPubKey</li>
+            <li><strong>Minimal push encoding:</strong> Eliminates malleability vectors</li>
+            <li><strong>SIGHASH_SINGLE fix:</strong> Prevents coin theft vector from out-of-range inputs</li>
+            <li><strong>CHECKMULTISIG NULLDUMMY:</strong> Enforced for anti-malleability</li>
+            <li><strong>Bounded execution:</strong> Prevents CPU/memory exhaustion attacks</li>
+        </ul>
+
+        <div class="success-box">
+            Any well-formed script up to 10KB is standard and relayable.
+        </div>
+    </div>
+
+    <div id="fees" class="tab-pane">
+        <h1>Fee Policy</h1>
+        <p>Bitcoin's original fee system was based on priority, not bidding. Satoshi designed it so that coins held for a day or more move for free, and fees exist only as spam protection.</p>
+
+        <div class="info-box">
+            Bitcoin Core removed this system entirely in favor of a pure fee market. Bitok restores it.
+        </div>
+
+        <h2>Priority Formula</h2>
+        <pre><code>priority = sum(input_value * confirmations) / tx_size</code></pre>
+
+        <h2>How It Works</h2>
+        <ul>
+            <li>Coins held ~1 day at typical amounts qualify for free transactions</li>
+            <li>First 27KB of each block reserved for high-priority free transactions</li>
+            <li>Remaining space sorted by fee-per-byte</li>
+            <li>When fees apply: 0.01 BITOK per KB</li>
+            <li>Dust outputs (< 0.01 BITOK) always require a fee</li>
+        </ul>
+
+        <div class="success-box">
+            <strong>The wallet handles everything automatically.</strong> If your coins have been sitting for a day, your transaction is free. If not, the wallet includes the fee and shows a confirmation.
+        </div>
+
+        <h2>Priority Threshold</h2>
+        <p>A transaction qualifies for free relay and mining if:</p>
+        <pre><code>priority >= COIN * 144 / 250</code></pre>
+
+        <p>This means a transaction with 1 BITOK aged for 144 blocks (~1 day) and size of 250 bytes qualifies for free relay and inclusion in the priority space.</p>
+
+        <h2>Fee Calculation Examples</h2>
+        <table class="spec-table">
+            <tr><td>Scenario</td><td>Result</td></tr>
+            <tr><td>1 BITOK held 2 days, 250 byte tx</td><td><strong>FREE</strong></td></tr>
+            <tr><td>10 BITOK held 1 hour, 250 byte tx</td><td><strong>0.01 BITOK fee</strong></td></tr>
+            <tr><td>0.5 BITOK held 3 days, 250 byte tx</td><td><strong>FREE</strong></td></tr>
+            <tr><td>100 BITOK held 10 minutes, 500 byte tx</td><td><strong>0.01 BITOK fee</strong></td></tr>
+        </table>
+
+        <div class="warning-box">
+            <strong>Note:</strong> During network congestion, priority-space transactions compete based on priority value. Higher priority = faster confirmation.
+        </div>
+    </div>
+
+    <div id="spv" class="tab-pane">
+        <h1>SPV Client Protocol</h1>
+        <p>The Bitcoin whitepaper dedicated an entire section to simplified payment verification -- lightweight clients that verify payments without downloading the full chain.</p>
+
+        <div class="info-box">
+            <strong>Section 8 of the whitepaper, implemented.</strong> Bitok supports BIP37-style lightweight wallet connectivity.
+        </div>
+
+        <h2>SPV Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Header Sync</h4>
+                <p>getheaders/headers messages, 2,000 headers per batch for fast sync</p>
+            </div>
+            <div class="feature-card">
+                <h4>Bloom Filters</h4>
+                <p>filterload/filteradd/filterclear for efficient transaction matching</p>
+            </div>
+            <div class="feature-card">
+                <h4>Filtered Blocks</h4>
+                <p>merkleblock messages with Merkle proofs for matched transactions</p>
+            </div>
+            <div class="feature-card">
+                <h4>Merkle Proofs</h4>
+                <p>gettxoutproof/verifytxoutproof RPC for independent verification</p>
+            </div>
+            <div class="feature-card">
+                <h4>Transaction Broadcast</h4>
+                <p>sendrawtransaction for pre-signed transaction submission</p>
+            </div>
+        </div>
+
+        <h2>Protocol Messages</h2>
+
+        <div class="rpc-cmd">
+            <h4>getheaders</h4>
+            <p>Request block headers starting from a known hash.</p>
+            <pre><code>getheaders (version, hashes, stop_hash)</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>headers</h4>
+            <p>Response with up to 2,000 block headers.</p>
+            <pre><code>headers (count, headers[])</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>filterload</h4>
+            <p>Set bloom filter for transaction matching.</p>
+            <pre><code>filterload (filter, hash_funcs, tweak, flags)</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>filteradd</h4>
+            <p>Add element to existing bloom filter.</p>
+            <pre><code>filteradd (data)</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>filterclear</h4>
+            <p>Remove bloom filter, return to full relay mode.</p>
+            <pre><code>filterclear ()</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>merkleblock</h4>
+            <p>Block header + Merkle branch proving transaction inclusion.</p>
+            <pre><code>merkleblock (header, total_txs, hashes, flags)</code></pre>
+        </div>
+
+        <h2>RPC Commands</h2>
+
+        <div class="rpc-cmd">
+            <h4>gettxoutproof &lt;txids&gt; [blockhash]</h4>
+            <p>Generate Merkle proof that transactions are in a block.</p>
+            <pre><code>./bitokd gettxoutproof '["txid1","txid2"]'</code></pre>
+        </div>
+
+        <div class="rpc-cmd">
+            <h4>verifytxoutproof &lt;proof&gt;</h4>
+            <p>Verify Merkle proof and return transaction IDs.</p>
+            <pre><code>./bitokd verifytxoutproof "hex_proof"</code></pre>
+        </div>
+
+        <h2>Security Considerations</h2>
+        <ul>
+            <li><strong>Trust model:</strong> SPV clients trust the longest chain but verify transaction inclusion</li>
+            <li><strong>Privacy:</strong> Bloom filters leak some privacy; use cautiously</li>
+            <li><strong>Confirmations:</strong> Wait for multiple confirmations for high-value payments</li>
+            <li><strong>Full node validation:</strong> SPV is lightweight but less secure than full validation</li>
+        </ul>
+
+        <div class="warning-box">
+            <strong>Important:</strong> SPV clients do not validate consensus rules. They trust miners to do so. For maximum security, run a full node.
+        </div>
+    </div>
+
+    <div id="security" class="tab-pane">
+        <h1>Security</h1>
+        <p>Bitok includes all critical security fixes from the Satoshi era, plus additional hardening for script execution.</p>
+
+        <h2>Satoshi-Era Fixes (Included from Launch)</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Value Overflow Protection</h4>
+                <p>Prevents the 184 billion coin bug that allowed creation of coins out of thin air in 2010</p>
+            </div>
+            <div class="feature-card">
+                <h4>Blockchain Checkpoints</h4>
+                <p>Hardcoded block hashes prevent reorg attacks on early blocks</p>
+            </div>
+            <div class="feature-card">
+                <h4>DoS Limits</h4>
+                <p>Connection limits, message size limits, rate limiting to prevent denial-of-service</p>
+            </div>
+            <div class="feature-card">
+                <h4>IsStandard Filtering</h4>
+                <p>Transaction standardness rules prevent relay of unusual/risky transactions</p>
+            </div>
+        </div>
+
+        <h2>Script Execution Hardening</h2>
+        <ul>
+            <li><strong>Strict DER signature validation:</strong> Rejects malformed signatures</li>
+            <li><strong>Low-S signature enforcement:</strong> Prevents signature malleability attacks</li>
+            <li><strong>SIGHASH_SINGLE fix:</strong> Out-of-range bug that enabled coin theft is fixed</li>
+            <li><strong>CHECKMULTISIG NULLDUMMY:</strong> Enforces that dummy element is OP_0, prevents malleability</li>
+            <li><strong>OP_RETURN hard failure:</strong> Original implementation was bugged, now properly terminates</li>
+            <li><strong>Separated evaluation:</strong> scriptSig evaluated separately, cannot manipulate scriptPubKey stack</li>
+            <li><strong>Bounded execution:</strong> Strict limits prevent CPU/memory exhaustion via crafted scripts</li>
+        </ul>
+
+        <h2>Network Security</h2>
+        <table class="spec-table">
+            <tr><td>P2P Encryption</td><td>None (plaintext, same as Bitcoin v0.3.19)</td></tr>
+            <tr><td>RPC Authentication</td><td>HTTP Basic Auth (username/password)</td></tr>
+            <tr><td>RPC Binding</td><td>127.0.0.1 (localhost only by default)</td></tr>
+            <tr><td>Wallet Encryption</td><td>Not available (backup wallet.dat instead)</td></tr>
+        </table>
+
+        <h2>Best Practices</h2>
+        <ul>
+            <li><strong>Backup wallet.dat:</strong> Store multiple copies in secure locations</li>
+            <li><strong>Secure RPC:</strong> Use strong passwords (32+ characters), never expose to internet</li>
+            <li><strong>Run full node:</strong> Validate all consensus rules yourself, don't trust others</li>
+            <li><strong>Wait for confirmations:</strong> 6 confirmations recommended for high-value transactions</li>
+            <li><strong>Keep software updated:</strong> Follow releases for security patches</li>
+        </ul>
+
+        <div class="warning-box">
+            <strong>Important:</strong> If you lose wallet.dat, your coins are gone forever. There is no recovery mechanism. Make regular backups!
+        </div>
+
+        <h2>Known Limitations</h2>
+        <ul>
+            <li>No wallet encryption (use OS-level encryption or hardware wallets)</li>
+            <li>No P2P encryption (traffic is visible on network)</li>
+            <li>IRC peer discovery is cleartext (use -addnode for privacy)</li>
+            <li>Bloom filters leak wallet addresses (SPV privacy trade-off)</li>
+        </ul>
     </div>
 </div>
 
