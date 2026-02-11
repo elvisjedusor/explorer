@@ -409,7 +409,7 @@
         </div>
 
         <div class="success-box">
-            <strong>New genesis block. Separate network.</strong> Same 21M cap, same halving schedule, same 10-minute blocks. All Satoshi-era security fixes included from launch: value overflow protection, checkpoints, DoS limits, IsStandard filtering.
+            <strong>New genesis block. Separate network.</strong> Same 21M cap, same halving schedule, same 10-minute blocks. All Satoshi-era security fixes included from launch: value overflow protection, checkpoints, DoS limits. Modern network hardening: time warp protection, DNS seeds, anchor connections, network group diversity.
         </div>
 
         <h2>Documentation</h2>
@@ -1330,7 +1330,7 @@ if (hash <= target) {
 
     <div id="security" class="tab-pane">
         <h1>Security</h1>
-        <p>Bitok includes all critical security fixes from the Satoshi era, plus additional hardening for script execution.</p>
+        <p>Bitok includes all critical security fixes from the Satoshi era, plus modern network hardening and script execution improvements.</p>
 
         <h2>Satoshi-Era Fixes (Included from Launch)</h2>
         <div class="feature-grid">
@@ -1340,15 +1340,35 @@ if (hash <= target) {
             </div>
             <div class="feature-card">
                 <h4>Blockchain Checkpoints</h4>
-                <p>Hardcoded block hashes prevent reorg attacks on early blocks</p>
+                <p>Hardcoded block hashes at blocks 0, 6666, 14000, 16000 prevent reorg attacks on early blocks</p>
             </div>
             <div class="feature-card">
                 <h4>DoS Limits</h4>
                 <p>Connection limits, message size limits, rate limiting to prevent denial-of-service</p>
             </div>
+        </div>
+
+        <h2>Modern Network Security</h2>
+        <div class="feature-grid">
             <div class="feature-card">
-                <h4>IsStandard Filtering</h4>
-                <p>Transaction standardness rules prevent relay of unusual/risky transactions</p>
+                <h4>Time Warp Attack Protection</h4>
+                <p>Validates block timestamps at difficulty adjustment boundaries to prevent difficulty manipulation attacks</p>
+            </div>
+            <div class="feature-card">
+                <h4>DNS Seed Infrastructure</h4>
+                <p>Reliable peer discovery via DNS seeds (seed1/2/3.bitokd.run) with fallback to hardcoded peers. No centralized HTTP dependencies</p>
+            </div>
+            <div class="feature-card">
+                <h4>External IP Detection</h4>
+                <p>Learns external IP from peers via P2P protocol. No HTTP calls to external services. Optional manual override via -externalip</p>
+            </div>
+            <div class="feature-card">
+                <h4>Anchor Connections</h4>
+                <p>Saves 2 longest-lived successful outbound connections to anchors.dat. Reconnects to trusted peers on restart for eclipse attack resistance</p>
+            </div>
+            <div class="feature-card">
+                <h4>Network Group Diversity</h4>
+                <p>Groups peers by /16 subnet. Limits outbound connections to 2 per group, inbound to 8 per group. Prevents sybil attacks from single network</p>
             </div>
         </div>
 
@@ -1362,6 +1382,11 @@ if (hash <= target) {
             <li><strong>Separated evaluation:</strong> scriptSig evaluated separately, cannot manipulate scriptPubKey stack</li>
             <li><strong>Bounded execution:</strong> Strict limits prevent CPU/memory exhaustion via crafted scripts</li>
         </ul>
+
+        <h2>Script Standardness</h2>
+        <div class="info-box">
+            <strong>Open Relay Policy:</strong> Any well-formed script up to 10KB is standard and relayable. All opcodes are available. Full script programmability is enabled while maintaining consensus security through strict execution limits.
+        </div>
 
         <h2>Network Security</h2>
         <table class="spec-table">
