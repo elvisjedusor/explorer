@@ -98,6 +98,7 @@ class TxOutput(Base):
     value = Column(BigInteger)
     address = Column(String(64))
     script_pubkey = Column(Text)
+    script_type = Column(String(32))
     spent = Column(Boolean, default=False)
     spent_by_txid = Column(String(64))
 
@@ -147,6 +148,19 @@ class ChainState(Base):
     )
 
 
+def _run_migrations(engine):
+    from sqlalchemy import inspect, text as sql_text
+    inspector = inspect(engine)
+    if 'tx_outputs' in inspector.get_table_names():
+        columns = [c['name'] for c in inspector.get_columns('tx_outputs')]
+        if 'script_type' not in columns:
+            with engine.connect() as conn:
+                conn.execute(sql_text(
+                    "ALTER TABLE tx_outputs ADD COLUMN script_type VARCHAR(32)"
+                ))
+                conn.commit()
+
+
 def init_db(database_url: str, pool_size: int = 10, max_overflow: int = 20,
             pool_timeout: int = 30, pool_recycle: int = 1800):
     engine_kwargs = {
@@ -165,6 +179,10 @@ def init_db(database_url: str, pool_size: int = 10, max_overflow: int = 20,
 
     engine = create_engine(database_url, **engine_kwargs)
     Base.metadata.create_all(engine)
+    try:
+        _run_migrations(engine)
+    except Exception:
+        pass
     Session = sessionmaker(bind=engine)
     return engine, Session
 

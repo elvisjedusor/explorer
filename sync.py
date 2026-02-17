@@ -3,11 +3,12 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, List
 from sqlalchemy.orm import Session as DBSession
-from sqlalchemy import text
+from sqlalchemy import text, func
 
 from models import Block, Transaction, TxInput, TxOutput, Address, ChainState, init_db
 from rpc_client import BitokRPC
 from config import Config
+from script_decoder import classify_script
 
 logging.basicConfig(
     level=logging.INFO,
@@ -16,6 +17,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 COIN = 100000000
+
+
+def extract_address_from_vout(vout):
+    if 'address' in vout:
+        return vout['address']
+    sp = vout.get('scriptPubKey')
+    if isinstance(sp, dict):
+        if 'address' in sp:
+            return sp['address']
+        if 'addresses' in sp and sp['addresses']:
+            return sp['addresses'][0]
+    return None
+
+
+def extract_script_pubkey(vout):
+    sp = vout.get('scriptPubKey')
+    if isinstance(sp, dict):
+        return sp.get('hex', str(sp))
+    return sp
 
 
 class BlockchainSync:
@@ -90,6 +110,36 @@ class BlockchainSync:
         self.address_cache[address] = addr
         return addr
 
+    def fetch_transaction(self, txid: str) -> Optional[Dict]:
+        try:
+            return self.rpc.getrawtransaction(txid, 1)
+        except Exception as e:
+            logger.debug(f'getrawtransaction failed for {txid}: {e}, trying gettransaction')
+
+        try:
+            tx_data = self.rpc.gettransaction(txid)
+            if 'vout' in tx_data:
+                return tx_data
+            if 'details' in tx_data and 'vout' not in tx_data:
+                logger.debug(f'gettransaction returned wallet format for {txid}, converting')
+                vouts = []
+                for i, detail in enumerate(tx_data.get('details', [])):
+                    if detail.get('category') in ('receive', 'generate'):
+                        vouts.append({
+                            'value': abs(detail.get('amount', 0)),
+                            'n': i,
+                            'address': detail.get('address'),
+                        })
+                tx_data['vout'] = vouts
+                if not tx_data.get('vin'):
+                    tx_data['vin'] = []
+                    if any(d.get('category') == 'generate' for d in tx_data.get('details', [])):
+                        tx_data['vin'] = [{'coinbase': 'wallet'}]
+            return tx_data
+        except Exception as e:
+            logger.warning(f'Could not fetch transaction {txid}: {e}')
+            return None
+
     def sync_block(self, session: DBSession, height: int) -> bool:
         try:
             blockhash = self.rpc.getblockhash(height)
@@ -119,7 +169,7 @@ class BlockchainSync:
                         for vin in tx_data['vin']:
                             if vin.get('txid'):
                                 prev_txids.append(vin['txid'])
-                except:
+                except Exception:
                     pass
 
             self.warm_output_cache(session, prev_txids)
@@ -133,18 +183,13 @@ class BlockchainSync:
             return True
 
         except Exception as e:
-            logger.error(f'Error syncing block {height}: {e}')
+            logger.error(f'Error syncing block {height}: {e}', exc_info=True)
             return False
 
     def sync_transaction(self, session: DBSession, txid: str, block: Block) -> int:
-        try:
-            tx_data = self.rpc.getrawtransaction(txid, 1)
-        except:
-            try:
-                tx_data = self.rpc.gettransaction(txid)
-            except:
-                logger.warning(f'Could not fetch transaction {txid}')
-                return 0
+        tx_data = self.fetch_transaction(txid)
+        if not tx_data:
+            return 0
 
         is_coinbase = False
         if 'vin' in tx_data and tx_data['vin']:
@@ -192,14 +237,23 @@ class BlockchainSync:
                             addr.balance -= prev_output.value
                             addr.tx_count += 1
                             addr.last_seen_block = block.height
+                    else:
+                        logger.warning(f'Previous output not found: {vin["txid"]}:{vin["vout"]} (spent in {txid})')
 
         if 'vout' in tx_data:
             for vout in tx_data['vout']:
                 value_btc = vout.get('value', 0)
-                value_satoshi = int(value_btc * COIN)
+                value_satoshi = round(value_btc * COIN)
                 total_output += value_satoshi
 
-                address = vout.get('address')
+                address = extract_address_from_vout(vout)
+                script_pubkey = extract_script_pubkey(vout)
+
+                if not address and value_satoshi > 0:
+                    logger.debug(f'No address for output {txid}:{vout.get("n", 0)} value={value_btc}')
+
+                script_info = classify_script(script_pubkey)
+                script_type = script_info.get('type', 'nonstandard')
 
                 tx_output = TxOutput(
                     tx_id=tx.id,
@@ -207,7 +261,8 @@ class BlockchainSync:
                     vout=vout.get('n', 0),
                     value=value_satoshi,
                     address=address,
-                    script_pubkey=vout.get('scriptPubKey')
+                    script_pubkey=script_pubkey,
+                    script_type=script_type
                 )
                 session.add(tx_output)
 
@@ -272,11 +327,112 @@ class BlockchainSync:
             return True
 
         except Exception as e:
-            logger.error(f'Sync error: {e}')
+            logger.error(f'Sync error: {e}', exc_info=True)
             session.rollback()
             return False
         finally:
             self.clear_caches()
+            session.close()
+
+    def reindex_addresses(self):
+        session = self.Session()
+        try:
+            null_count = session.query(func.count(TxOutput.id)).filter(
+                TxOutput.address == None,
+                TxOutput.value > 0
+            ).scalar()
+            logger.info(f'Found {null_count} outputs with NULL address')
+
+            total_count = session.query(func.count(TxOutput.id)).scalar()
+            with_addr = session.query(func.count(TxOutput.id)).filter(TxOutput.address != None).scalar()
+            logger.info(f'Total outputs: {total_count}, with address: {with_addr}, without: {null_count}')
+
+            if null_count > 0:
+                offset = 0
+                batch = 500
+                fixed = 0
+                while offset < null_count:
+                    outputs = session.query(TxOutput).filter(
+                        TxOutput.address == None,
+                        TxOutput.value > 0
+                    ).limit(batch).all()
+
+                    if not outputs:
+                        break
+
+                    txids_to_fetch = list(set(o.txid for o in outputs))
+                    tx_cache = {}
+                    for tid in txids_to_fetch:
+                        tx_data = self.fetch_transaction(tid)
+                        if tx_data and 'vout' in tx_data:
+                            tx_cache[tid] = tx_data
+
+                    for out in outputs:
+                        tx_data = tx_cache.get(out.txid)
+                        if not tx_data:
+                            continue
+                        for vout in tx_data['vout']:
+                            if vout.get('n', 0) == out.vout:
+                                address = extract_address_from_vout(vout)
+                                if address:
+                                    out.address = address
+                                    out.script_pubkey = extract_script_pubkey(vout)
+                                    fixed += 1
+                                break
+
+                    session.commit()
+                    logger.info(f'Fixed {fixed} outputs so far...')
+                    offset += batch
+
+                logger.info(f'Address reindex: fixed {fixed} outputs')
+
+            logger.info('Recalculating all address balances from UTXOs...')
+            session.execute(text('DELETE FROM addresses'))
+            session.commit()
+
+            addresses_data = session.query(
+                TxOutput.address,
+                func.sum(TxOutput.value).label('total_received'),
+                func.min(Transaction.block_height).label('first_seen'),
+                func.max(Transaction.block_height).label('last_seen'),
+            ).join(Transaction, TxOutput.tx_id == Transaction.id).filter(
+                TxOutput.address != None
+            ).group_by(TxOutput.address).all()
+
+            for row in addresses_data:
+                spent_total = session.query(func.coalesce(func.sum(TxOutput.value), 0)).filter(
+                    TxOutput.address == row.address,
+                    TxOutput.spent == True
+                ).scalar()
+
+                tx_count_out = session.query(func.count(func.distinct(TxOutput.txid))).filter(
+                    TxOutput.address == row.address
+                ).scalar()
+                tx_count_in = session.query(func.count(func.distinct(TxOutput.spent_by_txid))).filter(
+                    TxOutput.address == row.address,
+                    TxOutput.spent == True,
+                    TxOutput.spent_by_txid != None
+                ).scalar()
+
+                addr = Address(
+                    address=row.address,
+                    total_received=row.total_received,
+                    total_sent=spent_total,
+                    balance=row.total_received - spent_total,
+                    tx_count=tx_count_out + tx_count_in,
+                    first_seen_block=row.first_seen,
+                    last_seen_block=row.last_seen,
+                )
+                session.add(addr)
+
+            session.commit()
+            addr_count = session.query(func.count(Address.id)).scalar()
+            logger.info(f'Reindex complete: {addr_count} addresses recalculated')
+
+        except Exception as e:
+            logger.error(f'Reindex error: {e}', exc_info=True)
+            session.rollback()
+        finally:
             session.close()
 
     def run_continuous(self, interval: int = 10):
@@ -315,6 +471,8 @@ def main():
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == '--once':
         syncer.sync()
+    elif len(sys.argv) > 1 and sys.argv[1] == '--reindex-addresses':
+        syncer.reindex_addresses()
     else:
         syncer.run_continuous(interval=config.SYNC_INTERVAL)
 

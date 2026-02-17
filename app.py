@@ -8,6 +8,10 @@ import logging
 from config import Config
 from models import init_db, Block, Transaction, TxInput, TxOutput, Address, ChainState
 from rpc_client import BitokRPC
+from script_decoder import (
+    decode_script, script_to_asm, classify_script,
+    decode_script_sig, format_asm_html, SCRIPT_EXEC_HEIGHT
+)
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config.from_object(Config)
@@ -330,6 +334,8 @@ def transaction(txid):
         inputs = session.query(TxInput).filter_by(tx_id=tx.id).all()
         outputs = session.query(TxOutput).filter_by(tx_id=tx.id).all()
 
+        is_post_exec = tx.block_height >= SCRIPT_EXEC_HEIGHT if tx.block_height else False
+
         input_details = []
         for inp in inputs:
             detail = {
@@ -337,8 +343,16 @@ def transaction(txid):
                 'prev_txid': inp.prev_txid,
                 'prev_vout': inp.prev_vout,
                 'address': None,
-                'value': 0
+                'value': 0,
+                'script_sig_hex': inp.script_sig,
+                'script_sig_asm': '',
+                'script_sig_html': '',
+                'script_sig_decoded': None,
             }
+            if inp.script_sig:
+                detail['script_sig_asm'] = script_to_asm(inp.script_sig)
+                detail['script_sig_html'] = format_asm_html(inp.script_sig, is_scriptsig=True)
+                detail['script_sig_decoded'] = decode_script_sig(inp.script_sig)
             if inp.prev_txid:
                 prev_out = session.query(TxOutput).filter_by(
                     txid=inp.prev_txid,
@@ -349,10 +363,28 @@ def transaction(txid):
                     detail['value'] = prev_out.value
             input_details.append(detail)
 
+        output_details = []
+        for out in outputs:
+            script_info = classify_script(out.script_pubkey)
+            output_details.append({
+                'vout': out.vout,
+                'value': out.value,
+                'address': out.address,
+                'spent': out.spent,
+                'spent_by_txid': out.spent_by_txid,
+                'script_pubkey_hex': out.script_pubkey,
+                'script_pubkey_asm': script_to_asm(out.script_pubkey) if out.script_pubkey else '',
+                'script_pubkey_html': format_asm_html(out.script_pubkey) if out.script_pubkey else '',
+                'script_type': script_info.get('type', 'nonstandard'),
+                'script_label': script_info.get('label', 'Unknown'),
+                'script_info': script_info,
+            })
+
         return render_template('transaction.html',
             tx=tx,
             inputs=input_details,
-            outputs=outputs,
+            outputs=output_details,
+            is_post_exec=is_post_exec,
             config=config
         )
 
@@ -373,6 +405,20 @@ def address_page(address, page=1):
                 balance=0,
                 tx_count=0
             )
+
+        total_received_utxo = session.query(func.coalesce(func.sum(TxOutput.value), 0)).filter(
+            TxOutput.address == address
+        ).scalar()
+        total_sent_utxo = session.query(func.coalesce(func.sum(TxOutput.value), 0)).filter(
+            TxOutput.address == address,
+            TxOutput.spent == True
+        ).scalar()
+        balance_utxo = total_received_utxo - total_sent_utxo
+
+        if balance_utxo != addr.balance:
+            addr.total_received = total_received_utxo
+            addr.total_sent = total_sent_utxo
+            addr.balance = balance_utxo
 
         per_page = config.ITEMS_PER_PAGE
 
@@ -616,28 +662,83 @@ def api_transaction(txid):
                 if prev_out:
                     inp_data['address'] = prev_out.address
                     inp_data['value'] = format_coin(prev_out.value)
+            if inp.script_sig:
+                inp_data['script_sig_hex'] = inp.script_sig
+                inp_data['script_sig_asm'] = script_to_asm(inp.script_sig)
             inputs.append(inp_data)
 
         outputs = []
         for out in session.query(TxOutput).filter_by(tx_id=tx.id).all():
-            outputs.append({
+            script_info = classify_script(out.script_pubkey) if out.script_pubkey else {}
+            out_data = {
                 'n': out.vout,
                 'value': format_coin(out.value),
                 'address': out.address,
-                'spent': out.spent
-            })
+                'spent': out.spent,
+                'spent_by_txid': out.spent_by_txid,
+                'script_type': script_info.get('type', 'nonstandard'),
+                'script_label': script_info.get('label', 'Unknown'),
+            }
+            if out.script_pubkey:
+                out_data['script_pubkey_hex'] = out.script_pubkey
+                out_data['script_pubkey_asm'] = script_to_asm(out.script_pubkey)
+            outputs.append(out_data)
+
+        is_post_exec = tx.block_height >= SCRIPT_EXEC_HEIGHT if tx.block_height else False
 
         return jsonify({
             'txid': tx.txid,
             'block_hash': tx.block_hash,
             'block_height': tx.block_height,
             'is_coinbase': tx.is_coinbase,
+            'is_post_script_exec': is_post_exec,
             'total_input': format_coin(tx.total_input),
             'total_output': format_coin(tx.total_output),
             'fee': format_coin(tx.fee),
             'inputs': inputs,
             'outputs': outputs
         })
+
+
+@app.route('/api/decodescript', methods=['POST'])
+def api_decodescript():
+    data = request.get_json()
+    if not data or 'hex' not in data:
+        return jsonify({'error': 'Missing hex parameter'}), 400
+
+    hex_script = data['hex'].strip()
+    if not hex_script:
+        return jsonify({'error': 'Empty hex script'}), 400
+
+    try:
+        int(hex_script, 16)
+    except ValueError:
+        return jsonify({'error': 'Invalid hex string'}), 400
+
+    script_info = classify_script(hex_script)
+    elements = decode_script(hex_script)
+    asm = script_to_asm(hex_script)
+
+    rpc_result = None
+    try:
+        rpc_result = rpc.decodescript(hex_script)
+    except Exception:
+        pass
+
+    return jsonify({
+        'hex': hex_script,
+        'asm': asm,
+        'type': script_info.get('type', 'nonstandard'),
+        'label': script_info.get('label', 'Unknown'),
+        'description': script_info.get('description', ''),
+        'elements': [{
+            'type': e['type'],
+            'value': e.get('hex', e.get('name', '')),
+            'name': e.get('name', ''),
+            'description': e.get('description', ''),
+        } for e in elements],
+        'rpc_decode': rpc_result,
+    })
 
 
 @app.route('/api/address/<address>')

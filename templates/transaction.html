@@ -25,6 +25,9 @@
             {% else %}
             <span class="badge badge-info">Transfer</span>
             {% endif %}
+            {% if is_post_exec %}
+            <span class="badge badge-script-exec" title="Script Exec rules active (block >= 18000)">Script Exec</span>
+            {% endif %}
         </div>
     </div>
     <div class="detail-row">
@@ -54,7 +57,7 @@
                 <li class="io-item">
                     {% if inp.coinbase %}
                     <div style="color: #10b981; font-weight: bold;">Coinbase (Block Reward)</div>
-                    <div class="hash" style="font-size: 11px; color: #666; margin-top: 5px;">{{ inp.coinbase[:40] }}{% if inp.coinbase|length > 40 %}...{% endif %}</div>
+                    <div class="hash" style="font-size: 11px; color: #666; margin-top: 5px;">{{ inp.coinbase[:60] }}{% if inp.coinbase|length > 60 %}...{% endif %}</div>
                     {% else %}
                     <div class="io-address">
                         {% if inp.address %}
@@ -70,6 +73,40 @@
                     <div class="hash io-from" style="font-size: 11px; color: #666; margin-top: 5px;">
                         From: <a href="/tx/{{ inp.prev_txid }}">{{ inp.prev_txid[:20] }}...</a> [{{ inp.prev_vout }}]
                     </div>
+                    {% if inp.script_sig_hex %}
+                    <div class="script-toggle" onclick="toggleScript(this)">Show scriptSig</div>
+                    <div class="script-detail" style="display:none;">
+                        <div class="script-section">
+                            <div class="script-section-label">ASM</div>
+                            <div class="script-asm">{{ inp.script_sig_html | safe }}</div>
+                        </div>
+                        {% if inp.script_sig_decoded and inp.script_sig_decoded.parts %}
+                        <div class="script-section">
+                            <div class="script-section-label">Decoded</div>
+                            {% for part in inp.script_sig_decoded.parts %}
+                            <div class="script-decoded-part">
+                                {% if part.type == 'signature' %}
+                                <span class="script-part-label">Signature</span>
+                                <span class="script-part-info">({{ part.size }} bytes, SIGHASH_{{ part.sighash }})</span>
+                                {% elif part.type == 'pubkey' %}
+                                <span class="script-part-label">Public Key</span>
+                                <span class="script-part-info">({{ part.size }} bytes, {{ 'compressed' if part.compressed else 'uncompressed' }})</span>
+                                {% elif part.type == 'data' %}
+                                <span class="script-part-label">Data</span>
+                                <span class="script-part-info">({{ part.size }} bytes)</span>
+                                {% elif part.type == 'opcode' %}
+                                <span class="script-op">{{ part.name }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="script-section">
+                            <div class="script-section-label">Hex</div>
+                            <div class="script-hex">{{ inp.script_sig_hex }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </li>
                 {% endfor %}
@@ -84,29 +121,84 @@
                 {% for out in outputs %}
                 <li class="io-item">
                     <div class="io-address">
-                        {% if out.address %}
+                        {% if out.script_type == 'nulldata' %}
+                        <span class="badge badge-opreturn">OP_RETURN</span>
+                        {% elif out.address %}
                         <a href="/address/{{ out.address }}">{{ out.address }}</a>
                         {% else %}
-                        <span style="color: #666;">Unknown Script</span>
+                        <span style="color: #666;">Non-Standard Output</span>
                         {% endif %}
+                        <span class="badge badge-script-type badge-type-{{ out.script_type }}">{{ out.script_label }}</span>
                     </div>
                     <div style="margin-top: 5px;">
                         <span style="color: #888;">Value:</span>
                         <span class="amount-positive">{{ out.value | coin }} {{ config.COIN_SYMBOL }}</span>
+                        <span style="color: #999; font-size: 11px; margin-left: 6px;">#{{ out.vout }}</span>
                     </div>
+                    {% if out.script_type == 'nulldata' and out.script_info.data_hex %}
+                    <div class="opreturn-data">
+                        <div class="script-section-label">Data (hex)</div>
+                        <div class="script-hex">{{ out.script_info.data_hex }}</div>
+                        {% if out.script_info.data_text %}
+                        <div class="script-section-label" style="margin-top: 4px;">Data (text)</div>
+                        <div class="opreturn-text">{{ out.script_info.data_text }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if out.script_type == 'multisig' %}
+                    <div class="multisig-info">
+                        <span style="color: #888;">{{ out.script_info.m }}-of-{{ out.script_info.n }}</span>
+                        {% for pk in out.script_info.pubkeys %}
+                        <div class="script-hex" style="font-size: 10px; margin-top: 2px;">Key {{ loop.index }}: {{ pk[:32] }}...{{ pk[-8:] }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     <div style="margin-top: 5px;">
                         {% if out.spent %}
                         <span class="badge badge-warning">Spent</span>
+                        {% if out.spent_by_txid %}
+                        <a href="/tx/{{ out.spent_by_txid }}" class="hash" style="font-size: 11px; margin-left: 4px;">{{ out.spent_by_txid[:16] }}...</a>
+                        {% endif %}
                         {% else %}
                         <span class="badge badge-success">Unspent</span>
                         {% endif %}
                     </div>
+                    {% if out.script_pubkey_hex %}
+                    <div class="script-toggle" onclick="toggleScript(this)">Show scriptPubKey</div>
+                    <div class="script-detail" style="display:none;">
+                        <div class="script-section">
+                            <div class="script-section-label">Type</div>
+                            <div>{{ out.script_info.get('description', out.script_label) }}</div>
+                        </div>
+                        <div class="script-section">
+                            <div class="script-section-label">ASM</div>
+                            <div class="script-asm">{{ out.script_pubkey_html | safe }}</div>
+                        </div>
+                        <div class="script-section">
+                            <div class="script-section-label">Hex</div>
+                            <div class="script-hex">{{ out.script_pubkey_hex }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
 </div>
+
+<script>
+function toggleScript(el) {
+    var detail = el.nextElementSibling;
+    if (detail.style.display === 'none') {
+        detail.style.display = 'block';
+        el.textContent = el.textContent.replace('Show', 'Hide');
+    } else {
+        detail.style.display = 'none';
+        el.textContent = el.textContent.replace('Hide', 'Show');
+    }
+}
+</script>
 
 <style>
 .io-title {
@@ -116,6 +208,194 @@
 }
 .io-address {
     word-break: break-all;
+}
+.script-toggle {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #0066cc;
+    cursor: pointer;
+    user-select: none;
+}
+.script-toggle:hover {
+    text-decoration: underline;
+}
+.script-detail {
+    margin-top: 6px;
+    background: #f4f4f0;
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 11px;
+}
+.script-section {
+    margin-bottom: 6px;
+}
+.script-section:last-child {
+    margin-bottom: 0;
+}
+.script-section-label {
+    font-weight: bold;
+    color: #666;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+.script-asm {
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+    line-height: 1.7;
+    font-size: 12px;
+}
+.script-hex {
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+    color: #666;
+    font-size: 11px;
+}
+.script-op {
+    display: inline-block;
+    background: #e8e8e0;
+    border: 1px solid #ccc;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+    color: #333;
+    font-size: 11px;
+}
+.script-op-crypto {
+    background: #d4edda;
+    border-color: #a3d9b1;
+    color: #155724;
+}
+.script-op-return {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+.script-op-string {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+.script-op-math {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+.script-op-bitwise {
+    background: #e2d9f3;
+    border-color: #c4b5d9;
+    color: #4a2d7a;
+}
+.script-op-flow {
+    background: #fce4d6;
+    border-color: #f0c9a8;
+    color: #7c4a1e;
+}
+.script-op-stack {
+    background: #e0e0e0;
+    border-color: #bbb;
+    color: #444;
+}
+.script-op-hash {
+    background: #d6eaf8;
+    border-color: #a9cce3;
+    color: #1b4f72;
+}
+.script-op-compare {
+    background: #dcedc8;
+    border-color: #b5d89c;
+    color: #33691e;
+}
+.script-op-verify {
+    background: #ffe0b2;
+    border-color: #ffcc80;
+    color: #e65100;
+}
+.script-op-disabled {
+    background: #f44336;
+    border-color: #c62828;
+    color: #fff;
+    text-decoration: line-through;
+}
+.script-data {
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    color: #0066cc;
+    font-size: 11px;
+    cursor: default;
+}
+.badge-script-exec {
+    background: #1a3a4a;
+    color: #4fc3f7;
+    border: 1px solid #4fc3f7;
+    font-size: 10px;
+    margin-left: 6px;
+}
+.badge-script-type {
+    font-size: 10px;
+    margin-left: 6px;
+}
+.badge-type-pubkeyhash {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #81c784;
+}
+.badge-type-pubkey {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #64b5f6;
+}
+.badge-type-multisig {
+    background: #fff8e1;
+    color: #f57f17;
+    border: 1px solid #ffcc02;
+}
+.badge-type-nulldata {
+    background: #fce4ec;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+}
+.badge-type-nonstandard {
+    background: #f3e5f5;
+    color: #6a1b9a;
+    border: 1px solid #ce93d8;
+}
+.badge-opreturn {
+    background: #c62828;
+    color: #fff;
+    border: 1px solid #b71c1c;
+}
+.opreturn-data {
+    margin-top: 6px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    padding: 6px 8px;
+    font-size: 11px;
+}
+.opreturn-text {
+    font-family: 'Courier New', monospace;
+    color: #333;
+    background: #fff;
+    padding: 4px 6px;
+    border: 1px solid #ddd;
+}
+.multisig-info {
+    margin-top: 6px;
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    padding: 6px 8px;
+    font-size: 11px;
+}
+.script-decoded-part {
+    padding: 2px 0;
+}
+.script-part-label {
+    font-weight: bold;
+    color: #333;
+}
+.script-part-info {
+    color: #888;
+    font-size: 10px;
 }
 @media (max-width: 900px) {
     .io-title {

@@ -73,6 +73,15 @@ class BitokRPC:
     def validateaddress(self, address: str) -> Dict:
         return self._call('validateaddress', [address])
 
+    def decoderawtransaction(self, hex_tx: str) -> Dict:
+        return self._call('decoderawtransaction', [hex_tx])
+
+    def decodescript(self, hex_script: str) -> Dict:
+        return self._call('decodescript', [hex_script])
+
+    def getmininginfo(self) -> Dict:
+        return self._call('getmininginfo')
+
     def is_connected(self) -> bool:
         try:
             self.getblockcount()
