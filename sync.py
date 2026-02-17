@@ -1,6 +1,6 @@
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, List
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import text, func
@@ -55,7 +55,7 @@ class BlockchainSync:
         state = session.query(ChainState).filter_by(key=key).first()
         if state:
             state.value = value
-            state.updated_at = datetime.utcnow()
+            state.updated_at = datetime.now(timezone.utc)
         else:
             state = ChainState(key=key, value=value)
             session.add(state)

@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, abort, redirect, url_for
 from sqlalchemy import desc, func
 from sqlalchemy.orm import scoped_session
-from datetime import datetime
+from datetime import datetime, timezone
 from contextlib import contextmanager
 import logging
 
@@ -89,8 +89,8 @@ def format_timestamp(ts):
 def format_age(ts):
     if ts is None:
         return ''
-    now = datetime.utcnow()
-    then = datetime.utcfromtimestamp(ts)
+    now = datetime.now(timezone.utc)
+    then = datetime.fromtimestamp(ts, tz=timezone.utc)
     diff = now - then
 
     if diff.days > 0:

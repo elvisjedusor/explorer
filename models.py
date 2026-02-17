@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import (
     create_engine, Column, Integer, BigInteger, String, Float,
     DateTime, Text, ForeignKey, Index, Boolean, event
@@ -24,7 +24,7 @@ class Block(Base):
     nonce = Column(BigInteger)
     tx_count = Column(Integer, default=0)
     total_value = Column(BigInteger, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     transactions = relationship('Transaction', back_populates='block', lazy='dynamic')
 
@@ -50,7 +50,7 @@ class Transaction(Base):
     total_input = Column(BigInteger, default=0)
     total_output = Column(BigInteger, default=0)
     fee = Column(BigInteger, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     block = relationship('Block', back_populates='transactions')
     inputs = relationship('TxInput', back_populates='transaction', lazy='dynamic',
@@ -125,8 +125,8 @@ class Address(Base):
     tx_count = Column(Integer, default=0)
     first_seen_block = Column(Integer)
     last_seen_block = Column(Integer)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         Index('idx_address_address', 'address'),
@@ -141,7 +141,7 @@ class ChainState(Base):
     id = Column(Integer, primary_key=True)
     key = Column(String(64), unique=True, nullable=False)
     value = Column(Text)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         Index('idx_chain_state_key', 'key'),
