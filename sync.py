@@ -210,6 +210,7 @@ class BlockchainSync:
 
         total_input = 0
         total_output = 0
+        counted_addresses = set()
 
         if 'vin' in tx_data:
             for vin in tx_data['vin']:
@@ -235,7 +236,9 @@ class BlockchainSync:
                             addr = self.get_or_create_address(session, prev_output.address, block.height)
                             addr.total_sent += prev_output.value
                             addr.balance -= prev_output.value
-                            addr.tx_count += 1
+                            if prev_output.address not in counted_addresses:
+                                addr.tx_count += 1
+                                counted_addresses.add(prev_output.address)
                             addr.last_seen_block = block.height
                     else:
                         logger.warning(f'Previous output not found: {vin["txid"]}:{vin["vout"]} (spent in {txid})')
@@ -273,7 +276,9 @@ class BlockchainSync:
                     addr = self.get_or_create_address(session, address, block.height)
                     addr.total_received += value_satoshi
                     addr.balance += value_satoshi
-                    addr.tx_count += 1
+                    if address not in counted_addresses:
+                        addr.tx_count += 1
+                        counted_addresses.add(address)
                     addr.last_seen_block = block.height
 
         tx.total_input = total_input

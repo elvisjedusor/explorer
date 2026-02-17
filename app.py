@@ -415,7 +415,7 @@ def address_page(address, page=1):
         ).scalar()
         balance_utxo = total_received_utxo - total_sent_utxo
 
-        if balance_utxo != addr.balance:
+        if balance_utxo != addr.balance or total_received_utxo != addr.total_received or total_sent_utxo != addr.total_sent:
             addr.total_received = total_received_utxo
             addr.total_sent = total_sent_utxo
             addr.balance = balance_utxo
